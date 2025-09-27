@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Chat - Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #151931 0%, #817FE7 50%, #151931 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(88, 254, 248, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(129, 127, 231, 0.1) 0%, transparent 50%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            position: relative;
+            z-index: 1;
+            max-width: 400px;
+            width: 90%;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00FFCC, #58FEF8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+        }
+
+        .login-header p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .google-signin-btn {
+            background: linear-gradient(135deg, #817FE7, #00FFCC);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 30px;
+            color: #FFFFFF;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(129, 127, 231, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .google-signin-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .google-signin-btn:hover::before {
+            left: 100%;
+        }
+
+        .google-signin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 255, 204, 0.4);
+        }
+
+        .google-signin-btn:active {
+            transform: translateY(0);
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #4285f4;
+        }
+
+        .features {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        .feature i {
+            color: #00FFCC;
+            font-size: 1.1rem;
+            width: 20px;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #00FFCC;
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 255, 204, 0.3);
+            border-top: 2px solid #00FFCC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .login-card {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            .login-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1><i class="fas fa-robot"></i> AI Voice Chat</h1>
+                <p>Sign in to start your intelligent conversation</p>
+            </div>
+
+            <button id="googleSignInBtn" class="google-signin-btn">
+                <div class="google-icon">
+                    <i class="fab fa-google"></i>
+                </div>
+                Continue with Google
+            </button>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                Signing you in...
+            </div>
+
+            <div id="errorMessage" class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-microphone"></i>
+                    <span>Voice-to-text conversation</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-brain"></i>
+                    <span>AI-powered responses</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-volume-up"></i>
+                    <span>Natural text-to-speech</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure authentication</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google OAuth configuration - will be set by server
+        let GOOGLE_CLIENT_ID = '';
+        
+        // Initialize Google Sign-In
+        function initializeGoogleSignIn() {
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse,
+                    auto_select: false
+                });
+            } else {
+                console.error('Google Sign-In library not loaded');
+                showError('Google Sign-In library failed to load. Please refresh the page.');
+            }
+        }
+
+        // Handle Google Sign-In response
+        function handleCredentialResponse(response) {
+            showLoading(true);
+            
+            // Send the credential to your backend
+            fetch('/api/auth/google', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    credential: response.credential
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Store the token and redirect to main app
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.user));
+                    window.location.href = '/';
+                } else {
+                    showError(data.message || 'Authentication failed');
+                }
+            })
+            .catch(error => {
+                console.error('Auth error:', error);
+                showError('Authentication failed. Please try again.');
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+        }
+
+        // Show/hide loading state
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            const signInBtn = document.getElementById('googleSignInBtn');
+            
+            if (show) {
+                loading.style.display = 'flex';
+                signInBtn.style.display = 'none';
+            } else {
+                loading.style.display = 'none';
+                signInBtn.style.display = 'flex';
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Handle Google Sign-In button click
+        document.getElementById('googleSignInBtn').addEventListener('click', () => {
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.prompt();
+            } else {
+                showError('Google Sign-In not available. Please refresh the page.');
+            }
+        });
+
+        // Check if user is already authenticated
+        function checkAuthStatus() {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                // Verify token with backend
+                fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        window.location.href = '/';
+                    } else {
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('userInfo');
+                    }
+                })
+                .catch(() => {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                });
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkAuthStatus();
+            
+            // Get Google Client ID from server
+            try {
+                const response = await fetch('/api/auth/google-client-id');
+                const data = await response.json();
+                GOOGLE_CLIENT_ID = data.clientId;
+                
+                if (!GOOGLE_CLIENT_ID) {
+                    showError('Google OAuth not configured. Please contact administrator.');
+                    return;
+                }
+                
+                // Load Google Sign-In library
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.onload = initializeGoogleSignIn;
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Failed to load Google Client ID:', error);
+                showError('Failed to initialize authentication. Please refresh the page.');
+            }
+        });
+    </script>
+</body>
+</html>

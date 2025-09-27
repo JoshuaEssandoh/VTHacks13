@@ -10,6 +10,71 @@
     <script src="livekit-integration.js"></script>
 </head>
 <body>
+    <!-- Authentication Check -->
+    <script>
+        // Check if user is authenticated
+        function checkAuthentication() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Verify token with backend
+            fetch('/api/auth/verify', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    window.location.href = '/login.html';
+                } else {
+                    // User is authenticated, show user info
+                    displayUserInfo(data.user);
+                }
+            })
+            .catch(() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                window.location.href = '/login.html';
+            });
+        }
+
+        // Display user information
+        function displayUserInfo(user) {
+            const userInfo = document.createElement('div');
+            userInfo.className = 'user-info';
+            userInfo.innerHTML = `
+                <div class="user-avatar">
+                    <img src="${user.picture || 'https://via.placeholder.com/40'}" alt="User Avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                </div>
+                <div class="user-details">
+                    <span class="user-name">${user.name}</span>
+                    <button onclick="logout()" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            `;
+            
+            const header = document.querySelector('.header');
+            header.appendChild(userInfo);
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/login.html';
+        }
+
+        // Check authentication on page load
+        checkAuthentication();
+    </script>
+
     <div class="container">
         <header class="header">
             <h1><i class="fas fa-microphone"></i> AI Voice Conversation</h1>

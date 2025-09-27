@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const { AccessToken } = require('livekit-server-sdk');
 const OpenAI = require('openai');
+const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 require('dotenv').config();
 
 const app = express();
@@ -14,6 +16,15 @@ const port = process.env.PORT || 3000;
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
+
+// ========================================
+// 🔐 GOOGLE OAUTH INITIALIZATION
+// ========================================
+// Initialize Google OAuth client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// JWT secret for session tokens
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
 
 // Middleware
 app.use(express.json());
@@ -192,6 +203,103 @@ app.get('/api/health', (req, res) => {
         openai_configured: !!process.env.OPENAI_API_KEY,
         message: process.env.OPENAI_API_KEY ? 'API key is configured' : 'API key not found in .env file'
     });
+});
+
+// ========================================
+// 🔐 AUTHENTICATION MIDDLEWARE
+// ========================================
+// Middleware to verify JWT tokens
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: 'Invalid or expired token' });
+        }
+        req.user = user;
+        next();
+    });
+};
+
+// ========================================
+// 🔐 GOOGLE OAUTH ROUTES
+// ========================================
+// Google OAuth callback
+app.post('/api/auth/google', async (req, res) => {
+    try {
+        const { credential } = req.body;
+        
+        if (!credential) {
+            return res.status(400).json({ error: 'Credential is required' });
+        }
+
+        // Verify the Google ID token
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        // Create user object
+        const user = {
+            id: googleId,
+            email,
+            name,
+            picture,
+            loginTime: new Date().toISOString()
+        };
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { 
+                userId: googleId, 
+                email, 
+                name 
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({
+            success: true,
+            token,
+            user
+        });
+
+    } catch (error) {
+        console.error('Google OAuth error:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Authentication failed' 
+        });
+    }
+});
+
+// Verify JWT token
+app.get('/api/auth/verify', authenticateToken, (req, res) => {
+    res.json({
+        valid: true,
+        user: req.user
+    });
+});
+
+// Logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+    // Since we're using JWT, logout is handled client-side
+    // In a production app, you might want to maintain a blacklist
+    res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Get Google Client ID for frontend
+app.get('/api/auth/google-client-id', (req, res) => {
+    res.json({ clientId: process.env.GOOGLE_CLIENT_ID });
 });
 
 // ========================================
