@@ -213,8 +213,8 @@ class VoiceConversation {
         this.addMessage('Reading page from your book...', 'system');
         this.addMessage(pageText, 'book');
         
-        // Read the page aloud with slower, child-friendly pace
-        this.speakText(`Here's what I see on this page: ${pageText}`);
+        // Read the page text directly without any prefix
+        this.speakText(pageText);
         
         // Add context to conversation history for AI
         this.conversationHistory.push({ 
