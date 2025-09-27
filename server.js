@@ -54,6 +54,9 @@ app.use((req, res, next) => {
 
 // Middleware
 app.use(express.json());
+app.use(express.json());
+
+// Serve other static files
 app.use(express.static('.'));
 
 // ========================================

@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Fredoka+One&family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         .login-container {
             min-height: 100vh;
@@ -450,7 +449,7 @@
                 <p class="tagline">Unlock the magic in every word!</p>
             </div>
 
-            <form id="loginForm" class="login-form">
+            <form id="loginForm" class="login-form" onsubmit="event.preventDefault(); handleLogin();">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" placeholder="Enter your username" required>
@@ -460,21 +459,17 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 </div>
-
+            
                 <button type="submit" class="login-submit-btn" onclick="handleLogin()">
                     <i class="fas fa-sign-in-alt"></i>
-                    Let's Start Reading! 📚
+                    Let's Start Reading!
+                </button>
+                
+                <button id="bypassBtn" class="bypass-btn" onclick="handleBypass()">
+                    <i class="fas fa-rocket"></i>
+                    Explore without Signing In
                 </button>
             </form>
-
-            <div class="divider">
-                <span>or</span>
-            </div>
-
-            <button id="bypassBtn" class="bypass-btn" onclick="handleBypass()">
-                <i class="fas fa-rocket"></i>
-                Explore without Signing In 🚀
-            </button>
 
             <div id="loading" class="loading">
                 <div class="spinner"></div>
@@ -486,24 +481,6 @@
                 <span id="errorText"></span>
             </div>
 
-            <div class="features">
-                <div class="feature">
-                    <i class="fas fa-microphone"></i>
-                    <span>Voice-to-text conversation</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-brain"></i>
-                    <span>AI-powered responses</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-volume-up"></i>
-                    <span>Natural text-to-speech</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Secure authentication</span>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -731,7 +708,7 @@
             }
             
             console.log('Redirecting to main page...');
-            window.location.href = '/';
+            window.location.href = 'index.html';
         }
         
         function handleBypass() {
