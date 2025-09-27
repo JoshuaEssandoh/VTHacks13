@@ -10,8 +10,7 @@ class VoiceConversation {
         
         this.initializeElements();
         this.initializeCamera();
-        // Skip LiveKit initialization for now
-        // this.initializeLiveKit();
+        this.initializeLiveKit();
         this.initializeSpeechRecognition();
         this.initializeEventListeners();
         this.loadVoices();
@@ -20,24 +19,30 @@ class VoiceConversation {
         // Automatically start microphone listening when page loads
         this.autoStartListening();
         
-        // Test speech synthesis on load
-        setTimeout(() => {
-            console.log('Testing speech synthesis...');
-            console.log('Speech synthesis available:', 'speechSynthesis' in window);
-            console.log('Available voices:', this.synthesis.getVoices().length);
-            this.speakText('Hello! Speech synthesis is working.');
-        }, 2000);
+        // Test speech synthesis on load (but only after user interaction)
+        // Some browsers require user interaction before allowing speech synthesis
+        console.log('Speech synthesis available:', 'speechSynthesis' in window);
+        console.log('Available voices:', this.synthesis.getVoices().length);
+        console.log('Voice select element:', this.voiceSelect);
+        console.log('Speech rate element:', this.speechRate);
+        console.log('Speech pitch element:', this.speechPitch);
+        
+        // Add click listener to test speech synthesis after user interaction
+        document.addEventListener('click', () => {
+            console.log('User clicked, testing speech synthesis...');
+            this.testSimpleSpeech();
+        }, { once: true });
     }
 
     initializeElements() {
-        this.conversationArea = document.getElementById('conversationArea');
-        this.textInput = document.getElementById('textInput');
+        this.conversationArea = document.getElementById('conversationContainer');
+        this.textInput = document.getElementById('messageInput');
         this.voiceButton = document.getElementById('voiceButton');
-        this.sendButton = document.getElementById('sendButton');
+        this.sendButton = document.getElementById('sendBtn');
         this.clearButton = document.getElementById('clearButton');
         this.settingsButton = document.getElementById('settingsButton');
-        this.statusIndicator = document.getElementById('statusIndicator');
-        this.statusText = document.getElementById('statusText');
+        this.statusIndicator = document.getElementById('connectionStatus');
+        this.statusText = document.getElementById('connectionText');
         this.settingsModal = document.getElementById('settingsModal');
         this.closeSettings = document.getElementById('closeSettings');
         this.voiceSelect = document.getElementById('voiceSelect');
@@ -45,12 +50,12 @@ class VoiceConversation {
         this.speechPitch = document.getElementById('speechPitch');
         this.rateValue = document.getElementById('rateValue');
         this.pitchValue = document.getElementById('pitchValue');
-        this.webcam = document.getElementById('webcam');
+        this.webcam = document.getElementById('videoElement');
         this.canvas = document.getElementById('canvas');
         this.captureButton = document.getElementById('captureButton');
         this.ocrStatus = document.getElementById('ocrStatus');
         this.confidenceFill = document.getElementById('confidenceFill');
-        this.confidenceText = document.getElementById('confidenceText');
+        this.confidenceText = document.getElementById('confidenceValue');
         this.currentPageText = ''; // Store current page text for questions
         this.teachableModel = null;
         this.maxPredictions = 0;
@@ -58,8 +63,15 @@ class VoiceConversation {
 
     // LiveKit initialization disabled for testing
     async initializeLiveKit() {
-        console.log('LiveKit initialization skipped for testing');
-        return;
+        try {
+            console.log('LiveKit initialization skipped - using Web Speech API');
+            // Skip LiveKit for now to focus on basic speech synthesis
+            // this.livekit = new LiveKitIntegration();
+            console.log('Using standard Web Speech API for speech synthesis');
+        } catch (error) {
+            console.error('LiveKit initialization failed:', error);
+            console.log('Falling back to standard speech synthesis');
+        }
     }
 
     async initializeCamera() {
@@ -465,18 +477,6 @@ class VoiceConversation {
         this.addMessage(extractedText, 'book');
         
         try {
-            // Create a prompt for OpenAI to analyze and respond to the book page
-            const aiPrompt = `I just read a page from a book that contains the following text: "${extractedText}". 
-            
-            Please provide a helpful, engaging response that:
-            1. Acknowledges what was read
-            2. Provides a brief summary or highlights key points
-            3. Asks an engaging question to encourage discussion
-            4. Uses child-friendly language
-            5. Keeps the response conversational and encouraging
-            
-            Make it sound natural and friendly, as if you're a helpful reading assistant.`;
-
             // Add the book content to conversation history
             this.conversationHistory.push({ 
                 role: 'system', 
@@ -486,23 +486,17 @@ class VoiceConversation {
             // Generate AI response
             this.updateStatus('AI is analyzing the page...', 'thinking');
             
-            const response = await fetch('/api/ai-chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: aiPrompt,
-                    conversationHistory: this.conversationHistory
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // Try real AI API first, fallback to mock if it fails
+            let aiResponse;
+            try {
+                const bookAnalysisPrompt = `I just read this text from a child's book: "${extractedText}". Please provide a friendly, engaging analysis that helps a child understand what they're reading. Make it fun and educational, and ask them what they think about it!`;
+                aiResponse = await this.callOpenAI(bookAnalysisPrompt);
+                console.log('Generated AI response for book page from OpenAI:', aiResponse);
+            } catch (apiError) {
+                console.warn('OpenAI API failed for book page, using mock response:', apiError);
+                aiResponse = this.generateBookPageResponse(extractedText);
+                console.log('Generated mock AI response for book page:', aiResponse);
             }
-
-            const data = await response.json();
-            const aiResponse = data.response;
             
             // Add AI response to conversation
             this.addMessage(aiResponse, 'ai');
@@ -521,6 +515,47 @@ class VoiceConversation {
             this.speakText(`Here's what I see on this page: ${extractedText}`);
             this.updateOcrStatus('Page read (AI processing failed)', 'success');
         }
+    }
+
+    generateBookPageResponse(extractedText) {
+        // Simple analysis of the text
+        const wordCount = extractedText.split(/\s+/).length;
+        const hasQuestions = extractedText.includes('?');
+        const hasExclamations = extractedText.includes('!');
+        
+        let response = "Wow! I can see you have some text here! ";
+        
+        if (wordCount > 50) {
+            response += "This looks like a longer passage with lots of words! ";
+        } else if (wordCount > 20) {
+            response += "This is a nice medium-sized text! ";
+        } else {
+            response += "This looks like a shorter text! ";
+        }
+        
+        if (hasQuestions) {
+            response += "I can see there are questions in this text - that's great for learning! ";
+        }
+        
+        if (hasExclamations) {
+            response += "I notice there are exclamation marks - this text seems exciting! ";
+        }
+        
+        response += `I can see about ${wordCount} words in this text. `;
+        
+        // Add some encouraging words
+        const encouragements = [
+            "You're doing such a great job reading!",
+            "This looks like interesting content!",
+            "I love how you're exploring new words!",
+            "You're becoming such a good reader!",
+            "This text looks really engaging!"
+        ];
+        
+        response += encouragements[Math.floor(Math.random() * encouragements.length)] + " ";
+        response += "Would you like me to help you understand any specific words or ask questions about what you've read?";
+        
+        return response;
     }
 
     readBookPage(pageText) {
@@ -598,26 +633,70 @@ class VoiceConversation {
     }
 
     initializeEventListeners() {
-        this.voiceButton.addEventListener('click', () => this.toggleListening());
-        this.sendButton.addEventListener('click', () => this.sendTextMessage());
-        this.clearButton.addEventListener('click', () => this.clearConversation());
-        this.settingsButton.addEventListener('click', () => this.openSettings());
-        this.closeSettings.addEventListener('click', () => this.closeSettingsModal());
+        console.log('Initializing event listeners...');
         
-        this.textInput.addEventListener('input', () => this.updateSendButton());
-        this.textInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendTextMessage();
-            }
-        });
+        // Check if elements exist before adding listeners
+        if (this.voiceButton) {
+            this.voiceButton.addEventListener('click', () => this.toggleListening());
+            console.log('Voice button listener added');
+        } else {
+            console.warn('Voice button not found');
+        }
+        
+        if (this.sendButton) {
+            this.sendButton.addEventListener('click', () => this.sendTextMessage());
+            console.log('Send button listener added');
+        } else {
+            console.warn('Send button not found');
+        }
+        
+        if (this.clearButton) {
+            this.clearButton.addEventListener('click', () => this.clearConversation());
+            console.log('Clear button listener added');
+        } else {
+            console.warn('Clear button not found');
+        }
+        
+        if (this.settingsButton) {
+            this.settingsButton.addEventListener('click', () => this.openSettings());
+            console.log('Settings button listener added');
+        } else {
+            console.warn('Settings button not found');
+        }
+        
+        if (this.closeSettings) {
+            this.closeSettings.addEventListener('click', () => this.closeSettingsModal());
+            console.log('Close settings listener added');
+        } else {
+            console.warn('Close settings button not found');
+        }
+        
+        if (this.textInput) {
+            this.textInput.addEventListener('input', () => this.updateSendButton());
+            this.textInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendTextMessage();
+                }
+            });
+            console.log('Text input listeners added');
+        } else {
+            console.warn('Text input not found');
+        }
 
         // Close modal when clicking outside
-        this.settingsModal.addEventListener('click', (e) => {
-            if (e.target === this.settingsModal) {
-                this.closeSettingsModal();
-            }
-        });
+        if (this.settingsModal) {
+            this.settingsModal.addEventListener('click', (e) => {
+                if (e.target === this.settingsModal) {
+                    this.closeSettingsModal();
+                }
+            });
+            console.log('Settings modal listener added');
+        } else {
+            console.warn('Settings modal not found');
+        }
+        
+        console.log('Event listeners initialization complete');
     }
 
     loadVoices() {
@@ -736,57 +815,55 @@ class VoiceConversation {
     }
 
     handleUserInput(text) {
-        if (!text.trim()) return;
+        console.log('handleUserInput called with:', text);
+        if (!text.trim()) {
+            console.log('Empty text, returning');
+            return;
+        }
         
+        console.log('Adding user message to conversation');
         this.addMessage(text, 'user');
         this.conversationHistory.push({ role: 'user', content: text });
         
         // Check for OCR voice commands first
         if (this.isOCRCommand(text)) {
+            console.log('OCR command detected, handling OCR');
             this.handleOCRCommand(text);
             return;
         }
         
         // Generate AI response for regular conversation
+        console.log('Generating AI response for regular conversation');
         this.generateAIResponse(text);
     }
 
     async generateAIResponse(userInput) {
         try {
+            console.log('=== AI RESPONSE GENERATION START ===');
+            console.log('User input:', userInput);
+            
             this.updateStatus('AI is thinking...', 'thinking');
             
-            console.log('Sending request to API:', { message: userInput });
-            
-            // Call OpenAI API through our backend
-            const response = await fetch('/api/ai-chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: userInput,
-                    conversationHistory: this.conversationHistory
-                })
-            });
-
-            console.log('API Response status:', response.status);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('API Error:', errorData);
-                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            // Try real AI API first, fallback to mock if it fails
+            let aiResponse;
+            try {
+                aiResponse = await this.callOpenAI(userInput);
+                console.log('Generated AI response from OpenAI:', aiResponse);
+            } catch (apiError) {
+                console.warn('OpenAI API failed, using mock response:', apiError);
+                aiResponse = this.generateMockResponse(userInput);
+                console.log('Generated mock AI response:', aiResponse);
             }
-
-            const data = await response.json();
-            console.log('API Response data:', data);
-            const aiResponse = data.response;
             
+            console.log('Adding message to conversation area...');
             this.addMessage(aiResponse, 'ai');
             this.conversationHistory.push({ role: 'assistant', content: aiResponse });
+            console.log('Message added successfully');
             
             // Speak the response
             console.log('About to speak AI response:', aiResponse);
             this.speakText(aiResponse);
+            console.log('Speech synthesis called');
             
             // Fallback: ensure microphone restarts even if speech synthesis fails
             setTimeout(() => {
@@ -796,21 +873,12 @@ class VoiceConversation {
                 }
             }, 3000); // 3 second fallback
             
+            console.log('=== AI RESPONSE GENERATION COMPLETE ===');
+            
         } catch (error) {
             console.error('Error generating AI response:', error);
             
-            // More specific error messages
-            let errorMessage = "I'm sorry, I encountered an error processing your request. Please try again.";
-            
-            if (error.message.includes('Failed to fetch')) {
-                errorMessage = "I can't connect to the server. Please make sure the server is running.";
-            } else if (error.message.includes('HTTP 401')) {
-                errorMessage = "API key is invalid. Please check your configuration.";
-            } else if (error.message.includes('HTTP 402')) {
-                errorMessage = "API quota exceeded. Please check your billing.";
-            } else if (error.message.includes('HTTP 500')) {
-                errorMessage = "Server error. Please try again later.";
-            }
+            const errorMessage = "I'm sorry, I encountered an error processing your request. Please try again.";
             
             this.addMessage(errorMessage, 'ai');
             console.log('About to speak error message:', errorMessage);
@@ -824,6 +892,147 @@ class VoiceConversation {
                 }
             }, 3000); // 3 second fallback
         }
+    }
+
+    async callOpenAI(userInput) {
+        const apiKey = await this.getOpenAIKey();
+        if (!apiKey) {
+            throw new Error('OpenAI API key not configured');
+        }
+
+        // Prepare conversation history for context
+        const messages = [
+            {
+                role: "system",
+                content: "You are a friendly, enthusiastic bookworm assistant for children. You help kids with reading, answer questions about books, and make learning fun. Always be encouraging, use emojis, and speak in a child-friendly way. Keep responses concise but engaging."
+            },
+            ...this.conversationHistory.slice(-10), // Last 10 messages for context
+            {
+                role: "user",
+                content: userInput
+            }
+        ];
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: messages,
+                max_tokens: 150,
+                temperature: 0.7,
+                presence_penalty: 0.6,
+                frequency_penalty: 0.3
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+    }
+
+    async getOpenAIKey() {
+        // Check if we already have the API key cached
+        let apiKey = localStorage.getItem('openai_api_key');
+        
+        if (!apiKey) {
+            try {
+                // Fetch API key from server
+                console.log('Fetching OpenAI API key from server...');
+                const response = await fetch('http://localhost:3001/api/openai-key');
+                if (response.ok) {
+                    const data = await response.json();
+                    apiKey = data.apiKey;
+                    if (apiKey) {
+                        localStorage.setItem('openai_api_key', apiKey);
+                        console.log('OpenAI API key fetched from server and cached');
+                    }
+                } else {
+                    console.warn('Failed to fetch API key from server:', response.status);
+                }
+            } catch (error) {
+                console.warn('Error fetching API key from server:', error);
+            }
+        }
+        
+        if (!apiKey) {
+            console.log('No OpenAI API key available, will use mock responses');
+        } else {
+            console.log('OpenAI API key available');
+        }
+        
+        return apiKey;
+    }
+
+    // Function to update API key from settings
+    updateOpenAIKey(newKey) {
+        if (newKey && newKey.trim()) {
+            localStorage.setItem('openai_api_key', newKey.trim());
+            console.log('OpenAI API key updated');
+            return true;
+        }
+        return false;
+    }
+
+    // Function to clear API key
+    clearOpenAIKey() {
+        localStorage.removeItem('openai_api_key');
+        console.log('OpenAI API key cleared');
+    }
+
+    generateMockResponse(userInput) {
+        const lowerInput = userInput.toLowerCase();
+        
+        // Greeting responses
+        if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
+            return "Hello there, little reader! 👋 I'm so excited to help you with your reading adventure! What book would you like to explore today?";
+        }
+        
+        // Book-related responses
+        if (lowerInput.includes('book') || lowerInput.includes('read') || lowerInput.includes('story')) {
+            return "I love books too! 📚 Show me a page from your book and I'll help you understand it better. Just say 'read this page' or click the camera button!";
+        }
+        
+        // Help responses
+        if (lowerInput.includes('help') || lowerInput.includes('what can you do')) {
+            return "I'm your friendly bookworm assistant! 🐛 I can help you read book pages, answer questions about stories, and make reading fun! Try showing me a book page or asking me about your favorite stories!";
+        }
+        
+        // Question responses
+        if (lowerInput.includes('?') || lowerInput.includes('what') || lowerInput.includes('how') || lowerInput.includes('why')) {
+            return "That's a great question! 🤔 I'd love to help you find the answer. If you show me a book page, I can read it and help explain what it means!";
+        }
+        
+        // Thank you responses
+        if (lowerInput.includes('thank') || lowerInput.includes('thanks')) {
+            return "You're very welcome! 😊 I'm so happy to help you with your reading! Is there anything else you'd like to know about books?";
+        }
+        
+        // Reading-related responses
+        if (lowerInput.includes('read') || lowerInput.includes('page') || lowerInput.includes('text')) {
+            return "I'm ready to read with you! 📖 Just show me a book page in the camera and I'll tell you all about it!";
+        }
+        
+        // Default responses
+        const responses = [
+            "That's so interesting! Tell me more about what you're thinking! 🤔",
+            "I love hearing from you! What book are you reading today? 📚",
+            "You're such a great reader! Keep asking questions! 🌟",
+            "I'm here to help you with all your reading adventures! What would you like to explore? ✨",
+            "That sounds wonderful! I'd love to learn more about it! 😊",
+            "You're doing such a great job with your reading! Keep it up! 🎉",
+            "I'm so excited to help you discover new stories! What's your favorite book? 📖",
+            "You're asking such smart questions! I love helping curious readers like you! 🌈"
+        ];
+        
+        return responses[Math.floor(Math.random() * responses.length)];
     }
 
     speakText(text) {
@@ -843,18 +1052,40 @@ class VoiceConversation {
         
         const utterance = new SpeechSynthesisUtterance(text);
         
-        // Apply voice settings
+        // Apply voice settings with error checking
         const voices = this.synthesis.getVoices();
         console.log('Available voices:', voices.length);
         
-        const selectedVoiceIndex = this.voiceSelect.value;
-        if (selectedVoiceIndex !== 'default' && voices[selectedVoiceIndex]) {
-            utterance.voice = voices[selectedVoiceIndex];
-            console.log('Using voice:', voices[selectedVoiceIndex].name);
+        // Check if voice select element exists and has a value
+        if (this.voiceSelect && this.voiceSelect.value) {
+            const selectedVoiceIndex = this.voiceSelect.value;
+            console.log('Selected voice index:', selectedVoiceIndex);
+            
+            if (selectedVoiceIndex !== 'default' && voices[selectedVoiceIndex]) {
+                utterance.voice = voices[selectedVoiceIndex];
+                console.log('Using voice:', voices[selectedVoiceIndex].name);
+            } else {
+                console.log('Using default voice');
+            }
+        } else {
+            console.log('Voice select not available, using default voice');
         }
         
-        utterance.rate = parseFloat(this.speechRate.value);
-        utterance.pitch = parseFloat(this.speechPitch.value);
+        // Check if speech rate and pitch elements exist
+        if (this.speechRate && this.speechRate.value) {
+            utterance.rate = parseFloat(this.speechRate.value);
+        } else {
+            utterance.rate = 1.0;
+            console.log('Speech rate not available, using default 1.0');
+        }
+        
+        if (this.speechPitch && this.speechPitch.value) {
+            utterance.pitch = parseFloat(this.speechPitch.value);
+        } else {
+            utterance.pitch = 1.0;
+            console.log('Speech pitch not available, using default 1.0');
+        }
+        
         utterance.volume = 0.9; // Higher volume for clarity
         
         console.log('Speech settings:', {
@@ -906,10 +1137,35 @@ class VoiceConversation {
         };
         
         console.log('Starting speech synthesis...');
-        this.synthesis.speak(utterance);
+        console.log('Utterance text:', utterance.text);
+        console.log('Utterance settings:', {
+            rate: utterance.rate,
+            pitch: utterance.pitch,
+            volume: utterance.volume,
+            voice: utterance.voice ? utterance.voice.name : 'default'
+        });
+        
+        try {
+            console.log('Calling this.synthesis.speak...');
+            this.synthesis.speak(utterance);
+            console.log('speechSynthesis.speak called successfully');
+        } catch (error) {
+            console.error('Error calling speech synthesis:', error);
+            this.updateStatus('Speech synthesis failed', 'error');
+        }
     }
 
     addMessage(text, sender) {
+        console.log(`=== ADDING MESSAGE ===`);
+        console.log('Sender:', sender);
+        console.log('Text:', text);
+        console.log('Conversation area exists:', !!this.conversationArea);
+        
+        if (!this.conversationArea) {
+            console.warn('Conversation area not available for adding message');
+            return;
+        }
+        
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
         
@@ -936,49 +1192,75 @@ class VoiceConversation {
         contentDiv.appendChild(textP);
         messageDiv.appendChild(contentDiv);
         
+        console.log('Message element created, appending to conversation area...');
         this.conversationArea.appendChild(messageDiv);
+        console.log('Message appended successfully');
+        
         this.scrollToBottom();
+        console.log('=== MESSAGE ADDED ===');
     }
 
     scrollToBottom() {
-        this.conversationArea.scrollTop = this.conversationArea.scrollHeight;
+        if (this.conversationArea) {
+            this.conversationArea.scrollTop = this.conversationArea.scrollHeight;
+        }
     }
 
     sendTextMessage() {
+        console.log('sendTextMessage called');
         const text = this.textInput.value.trim();
-        if (!text) return;
+        console.log('Text input:', text);
+        if (!text) {
+            console.log('No text to send');
+            return;
+        }
         
         this.textInput.value = '';
         this.updateSendButton();
+        console.log('Calling handleUserInput with:', text);
         this.handleUserInput(text);
     }
 
     updateSendButton() {
+        if (!this.textInput || !this.sendButton) {
+            console.warn('Text input or send button not available for update');
+            return;
+        }
         const hasText = this.textInput.value.trim().length > 0;
         this.sendButton.disabled = !hasText;
     }
 
     updateUI() {
-        this.voiceButton.classList.toggle('listening', this.isListening);
-        this.voiceButton.disabled = this.isSpeaking;
+        if (this.voiceButton) {
+            this.voiceButton.classList.toggle('listening', this.isListening);
+            this.voiceButton.disabled = this.isSpeaking;
+        }
         // Only disable text input when listening, not when speaking
-        this.textInput.disabled = this.isListening;
+        if (this.textInput) {
+            this.textInput.disabled = this.isListening;
+        }
     }
 
     updateStatus(text, type = 'ready') {
-        this.statusText.textContent = text;
-        this.statusIndicator.className = `status-indicator ${type}`;
+        if (this.statusText) {
+            this.statusText.textContent = text;
+        }
+        if (this.statusIndicator) {
+            this.statusIndicator.className = `status-indicator ${type}`;
+        }
     }
 
     clearConversation() {
-        this.conversationArea.innerHTML = `
-            <div class="message ai-message">
-                <div class="message-content">
-                    <div class="bookworm-avatar">🐛</div>
-                    <p>Hi there, little reader! 👋 I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! 😄 I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! 📚✨</p>
+        if (this.conversationArea) {
+            this.conversationArea.innerHTML = `
+                <div class="message ai-message">
+                    <div class="message-content">
+                        <div class="bookworm-avatar">🐛</div>
+                        <p>Hi there, little reader! 👋 I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! 😄 I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! 📚✨</p>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
         this.conversationHistory = [];
         this.currentPageText = '';
         this.updateStatus('Microphone is active - start speaking!', 'listening');
@@ -986,11 +1268,15 @@ class VoiceConversation {
     }
 
     openSettings() {
-        this.settingsModal.style.display = 'block';
+        if (this.settingsModal) {
+            this.settingsModal.style.display = 'block';
+        }
     }
 
     closeSettingsModal() {
-        this.settingsModal.style.display = 'none';
+        if (this.settingsModal) {
+            this.settingsModal.style.display = 'none';
+        }
     }
 
     async autoStartListening() {
@@ -1098,12 +1384,151 @@ class VoiceConversation {
         console.log('Testing speech synthesis manually...');
         this.speakText('This is a test of the speech synthesis system.');
     }
+
+    // Simple test function for debugging
+    testSimpleSpeech() {
+        console.log('Testing simple speech...');
+        console.log('Speech synthesis object:', this.synthesis);
+        console.log('Window speech synthesis:', window.speechSynthesis);
+        console.log('Are they the same?', this.synthesis === window.speechSynthesis);
+        
+        const utterance = new SpeechSynthesisUtterance('Hello, this is a simple test.');
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        utterance.onstart = () => console.log('Simple speech started');
+        utterance.onend = () => console.log('Simple speech ended');
+        utterance.onerror = (event) => console.error('Simple speech error:', event.error);
+        
+        console.log('About to call speechSynthesis.speak...');
+        try {
+            this.synthesis.speak(utterance);
+            console.log('speechSynthesis.speak called successfully');
+        } catch (error) {
+            console.error('Error calling speechSynthesis.speak:', error);
+        }
+    }
+
+    // Test AI response generation
+    testAIResponse() {
+        console.log('Testing AI response generation...');
+        const testInput = 'hello';
+        const response = this.generateMockResponse(testInput);
+        console.log('Test input:', testInput);
+        console.log('Generated response:', response);
+        
+        // Test adding message
+        this.addMessage('Test user message', 'user');
+        this.addMessage(response, 'ai');
+        
+        // Test speech
+        this.speakText('This is a test of the AI response system.');
+    }
 }
 
 // Initialize the application when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.voiceConversation = new VoiceConversation();
 });
+
+// Global test functions for debugging
+window.testSpeech = () => {
+    if (window.voiceConversation) {
+        window.voiceConversation.testSpeech();
+    } else {
+        console.error('VoiceConversation not initialized');
+    }
+};
+
+window.testAI = () => {
+    if (window.voiceConversation) {
+        window.voiceConversation.testAIResponse();
+    } else {
+        console.error('VoiceConversation not initialized');
+    }
+};
+
+window.testSimpleSpeech = () => {
+    if (window.voiceConversation) {
+        window.voiceConversation.testSimpleSpeech();
+    } else {
+        console.error('VoiceConversation not initialized');
+    }
+};
+
+window.testDirectSpeech = () => {
+    console.log('Testing direct speech synthesis...');
+    const utterance = new SpeechSynthesisUtterance('Hello, this is a direct test of speech synthesis.');
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    utterance.onstart = () => console.log('Direct speech started');
+    utterance.onend = () => console.log('Direct speech ended');
+    utterance.onerror = (event) => console.error('Direct speech error:', event.error);
+    
+    speechSynthesis.speak(utterance);
+};
+
+window.testOpenAI = async () => {
+    if (window.voiceConversation) {
+        console.log('Testing OpenAI API...');
+        try {
+            const response = await window.voiceConversation.callOpenAI('Hello, this is a test!');
+            console.log('OpenAI response:', response);
+            alert('OpenAI test successful! Check console for response.');
+        } catch (error) {
+            console.error('OpenAI test failed:', error);
+            alert('OpenAI test failed: ' + error.message);
+        }
+    } else {
+        console.error('VoiceConversation not initialized');
+    }
+};
+
+window.testAPIKey = async () => {
+    console.log('Testing API key fetch...');
+    try {
+        const response = await fetch('http://localhost:3001/api/openai-key');
+        const data = await response.json();
+        console.log('API key response:', data);
+        alert('API key test successful! Check console for details.');
+    } catch (error) {
+        console.error('API key test failed:', error);
+        alert('API key test failed: ' + error.message);
+    }
+};
+
+window.testSpeechSynthesis = () => {
+    console.log('=== SPEECH SYNTHESIS TEST ===');
+    console.log('Speech synthesis available:', 'speechSynthesis' in window);
+    console.log('Available voices:', speechSynthesis.getVoices().length);
+    console.log('Speaking:', speechSynthesis.speaking);
+    console.log('Pending:', speechSynthesis.pending);
+    
+    const utterance = new SpeechSynthesisUtterance('Hello! This is a test of speech synthesis.');
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    utterance.onstart = () => {
+        console.log('✅ Speech started successfully!');
+        alert('Speech started! Check your speakers.');
+    };
+    
+    utterance.onend = () => {
+        console.log('✅ Speech ended successfully!');
+    };
+    
+    utterance.onerror = (event) => {
+        console.error('❌ Speech error:', event.error);
+        alert('Speech error: ' + event.error);
+    };
+    
+    console.log('Starting speech synthesis...');
+    speechSynthesis.speak(utterance);
+};
 
 // Handle page visibility changes to pause/resume speech
 document.addEventListener('visibilitychange', () => {

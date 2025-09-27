@@ -446,7 +446,7 @@
                         <span class="book-emoji">📖</span>
                     </div>
                 </div>
-                <p class="subtitle">Welcome to your magical reading adventure! 🌟</p>
+                <p class="subtitle">A Magical Reading Adventure</p>
                 <p class="tagline">Unlock the magic in every word!</p>
             </div>
 
@@ -502,6 +502,74 @@
                 <div class="feature">
                     <i class="fas fa-shield-alt"></i>
                     <span>Secure authentication</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Pages Container (Hidden Initially) -->
+    <div class="book-pages-container" id="bookPages">
+        <div class="book-pages">
+            <!-- Left Page - Camera Window -->
+            <div class="book-page">
+                <div class="page-header">
+                    <h2 class="page-title">StoryVue</h2>
+                    <p class="page-subtitle">Unlock the magic in every word!</p>
+                </div>
+                
+                <div class="camera-section">
+                    <div class="camera-display" id="cameraDisplay">
+                        <video id="videoElement" autoplay muted></video>
+                    </div>
+                    <div class="camera-controls">
+                        <button class="camera-btn" id="startCameraBtn">Start Camera</button>
+                        <button class="camera-btn" id="stopCameraBtn">Stop Camera</button>
+                    </div>
+                    <div class="confidence-indicator">
+                        <div class="confidence-text">Book Detection Confidence: <span id="confidenceValue">0%</span></div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Page - Chatbot -->
+            <div class="book-page">
+                <div class="chatbot-section">
+                    <div class="page-header">
+                        <h2 class="page-title">Reading Assistant</h2>
+                        <p class="page-subtitle">Your AI companion for magical reading!</p>
+                    </div>
+                    
+                    <div class="conversation-container" id="conversationContainer">
+                        <div class="message assistant">
+                            <strong>StoryVue Assistant:</strong> Hello! I'm here to help you with your reading adventure. Show me a book and I'll help you understand it better!
+                        </div>
+                    </div>
+                    
+                    <div class="input-area">
+                        <input type="text" id="messageInput" placeholder="Ask me about your book..." />
+                        <button class="send-btn" id="sendBtn">Send</button>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="settings-title">Settings</h3>
+                        <div class="setting-group">
+                            <label for="voiceSelect">Voice:</label>
+                            <select id="voiceSelect">
+                                <option value="default">Default Voice</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="speechRate">Speech Rate:</label>
+                            <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1">
+                        </div>
+                        <div class="setting-group">
+                            <label for="speechPitch">Speech Pitch:</label>
+                            <input type="range" id="speechPitch" min="0.5" max="2" step="0.1" value="1">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -668,7 +736,122 @@
         
         function handleBypass() {
             console.log('handleBypass called');
-            window.location.href = '/';
+            // Redirect to main page with book opening
+            window.location.href = 'http://localhost:3000?action=openBook';
+        }
+
+        // Handle login form submission
+        function handleLogin(event) {
+            event.preventDefault();
+            console.log('Login form submitted');
+            // Redirect to main page with book opening
+            window.location.href = 'http://localhost:3000?action=openBook';
+        }
+
+        // Book opening animation
+        function openBook() {
+            const loginCard = document.querySelector('.login-card');
+            const bookPages = document.getElementById('bookPages');
+            
+            // Add opening animation class
+            loginCard.classList.add('book-opening');
+            
+            // After animation completes, hide login and show book pages
+            setTimeout(() => {
+                loginCard.classList.add('book-opened');
+                bookPages.classList.add('show');
+                
+                // Initialize the book pages functionality
+                initializeBookPages();
+            }, 800);
+        }
+
+        // Initialize book pages functionality
+        function initializeBookPages() {
+            // Initialize camera
+            const videoElement = document.getElementById('videoElement');
+            const startCameraBtn = document.getElementById('startCameraBtn');
+            const stopCameraBtn = document.getElementById('stopCameraBtn');
+            
+            let stream = null;
+            
+            startCameraBtn.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    videoElement.srcObject = stream;
+                    startCameraBtn.style.display = 'none';
+                    stopCameraBtn.style.display = 'inline-block';
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                }
+            });
+            
+            stopCameraBtn.addEventListener('click', () => {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    videoElement.srcObject = null;
+                    startCameraBtn.style.display = 'inline-block';
+                    stopCameraBtn.style.display = 'none';
+                }
+            });
+            
+            // Initialize confidence indicator (mock for now)
+            updateConfidence(75);
+            
+            // Initialize chatbot
+            initializeChatbot();
+        }
+
+        // Update confidence indicator
+        function updateConfidence(percentage) {
+            const confidenceValue = document.getElementById('confidenceValue');
+            const confidenceFill = document.getElementById('confidenceFill');
+            
+            confidenceValue.textContent = percentage + '%';
+            confidenceFill.style.width = percentage + '%';
+        }
+
+        // Initialize chatbot functionality
+        function initializeChatbot() {
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const conversationContainer = document.getElementById('conversationContainer');
+            
+            function addMessage(text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+                messageDiv.innerHTML = isUser ? text : `<strong>StoryVue Assistant:</strong> ${text}`;
+                conversationContainer.appendChild(messageDiv);
+                conversationContainer.scrollTop = conversationContainer.scrollHeight;
+            }
+            
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    messageInput.value = '';
+                    
+                    // Simulate AI response
+                    setTimeout(() => {
+                        const responses = [
+                            "That's a great question about your book! Let me help you understand that better.",
+                            "I can see you're reading something interesting! What would you like to know?",
+                            "Books are magical portals to new worlds! What's your favorite part so far?",
+                            "I'm here to help you with any reading questions you might have!",
+                            "That's wonderful! Reading opens up so many possibilities for learning and imagination."
+                        ];
+                        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                        addMessage(randomResponse);
+                    }, 1000);
+                }
+            }
+            
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
         }
 
         // Initialize when page loads
@@ -685,32 +868,10 @@
             // checkAuthStatus();
             
             // Handle form submission
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
-                console.log('Form submitted!');
-                e.preventDefault();
-                
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value;
-                
-                console.log('Username:', username, 'Password:', password);
-                
-                if (!username || !password) {
-                    console.log('Missing fields');
-                    showError('Please fill in all fields');
-                    return;
-                }
-                
-                console.log('Redirecting to main page...');
-                // Just redirect to the main page
-                window.location.href = '/';
-            });
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
 
             // Handle bypass button click
-            document.getElementById('bypassBtn').addEventListener('click', function() {
-                console.log('Bypass button clicked!');
-                // Just redirect to the main page
-                window.location.href = '/';
-            });
+            document.getElementById('bypassBtn').addEventListener('click', handleBypass);
             
             // Get Google Client ID from server
             try {

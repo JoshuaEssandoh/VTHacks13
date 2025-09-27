@@ -348,6 +348,11 @@ app.get('/api/auth/google-client-id', (req, res) => {
     res.json({ clientId: process.env.GOOGLE_CLIENT_ID });
 });
 
+// Get OpenAI API Key for frontend
+app.get('/api/openai-key', (req, res) => {
+    res.json({ apiKey: process.env.OPENAI_API_KEY });
+});
+
 // ========================================
 // 🚀 SERVER STARTUP
 // ========================================

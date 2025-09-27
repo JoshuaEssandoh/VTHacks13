@@ -95,125 +95,344 @@
     </script>
 
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="title-section">
-                    <img src="assets/wormy.png" alt="StoryVue Bookworm Mascot" class="header-mascot">
-                    <h1 class="story-vue-title">StoryVue</h1>
-                </div>
-                <div class="books-decoration">
-                    <span class="book-emoji">📖</span>
-                    <span class="book-emoji">📚</span>
-                    <span class="book-emoji">📖</span>
-                </div>
-            </div>
-            <p class="subtitle">Your magical reading companion with a friendly bookworm guide!</p>
-            <p class="tagline">Unlock the magic in every word!</p>
-            <div class="connection-status" id="connectionStatus">
-                <i class="fas fa-circle"></i>
-                <span id="connectionText">Getting ready to read...</span>
-            </div>
-        </header>
-
-        <div class="camera-section">
-            <div class="camera-container">
-                <div class="camera-header">
-                    <h2>🔍 Magic Reading Window</h2>
-                    <p>Show me your book page and I'll read it to you! 📖✨</p>
-                </div>
-                <div class="camera-display">
-                    <video id="webcam" width="640" height="480" autoplay></video>
-                    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-                </div>
-                <div class="camera-controls">
-                    <div class="confidence-indicator">
-                        <div class="confidence-bar">
-                            <div id="confidenceFill" class="confidence-fill"></div>
+        <!-- Book Pages Container -->
+        <div class="book-pages-container" id="bookPages">
+            <div class="book-pages">
+                <!-- Left Page - Camera Window -->
+                <div class="book-page">
+                    <div class="page-header">
+                        <div class="title-section">
+                            <img src="assets/wormy.png" alt="StoryVue Bookworm Mascot" class="header-mascot">
+                            <h1 class="page-title">StoryVue</h1>
                         </div>
-                        <div id="confidenceText" class="confidence-text">Loading AI model...</div>
+                        <p class="page-subtitle">Unlock the magic in every word!</p>
+                        <div class="connection-status" id="connectionStatus">
+                            <i class="fas fa-circle"></i>
+                            <span id="connectionText">Getting ready to read...</span>
+                        </div>
                     </div>
-                    <button id="captureButton" class="capture-btn">
-                        <i class="fas fa-book-open"></i>
-                        Read This Page
-                    </button>
-                    <div id="ocrStatus" class="ocr-status">Position book page in camera view and say "read this page"</div>
+                    
+                    <div class="camera-section">
+                        <div class="camera-display" id="cameraDisplay">
+                            <video id="videoElement" autoplay muted></video>
+                        </div>
+                        <div class="camera-controls">
+                            <button class="camera-btn" id="startCameraBtn">Start Camera</button>
+                            <button class="camera-btn" id="stopCameraBtn">Stop Camera</button>
+                        </div>
+                        <div class="confidence-indicator">
+                            <div class="confidence-text">Book Detection Confidence: <span id="confidenceValue">0%</span></div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Page - Chatbot -->
+                <div class="book-page">
+                    <div class="chatbot-section">
+                        <div class="page-header">
+                            <div class="header-content">
+                                <h2 class="page-title">Reading Assistant</h2>
+                                <p class="page-subtitle">Your AI companion for magical reading!</p>
+                            </div>
+                            <div class="header-controls">
+                                <button class="control-btn" id="settingsButton" title="Settings">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                                <button class="control-btn" id="clearButton" title="Clear Conversation">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="conversation-container" id="conversationContainer">
+                            <div class="message ai-message">
+                                <div class="message-content">
+                                    <div class="bookworm-avatar">🐛</div>
+                                    <p>Hi there, little reader! 👋 I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! 😄 I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! 📚✨</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-area">
+                            <input type="text" id="messageInput" placeholder="Ask me about your book..." />
+                            <button class="voice-btn" id="voiceButton" title="Voice Input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button class="send-btn" id="sendBtn">Send</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="conversation-container">
-            <div class="conversation-area" id="conversationArea">
-                <div class="message ai-message">
-                    <div class="message-content">
-                        <div class="bookworm-avatar">🐛</div>
-                        <p>Hi there, little reader! 👋 I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! 😄 I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! 📚✨</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="input-area">
-            <div class="input-container">
-                <textarea 
-                    id="textInput" 
-                    placeholder="Type your message here or talk to me! 🎤✨" 
-                    rows="3"
-                    disabled
-                ></textarea>
-                <div class="button-group">
-                    <button id="voiceButton" class="voice-btn" title="Click to speak">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                    <button id="sendButton" class="send-btn" title="Send message" disabled>
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
+    <script>
+        // Initialize book layout when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we should open the book (from login redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'openBook') {
+                // Show book pages immediately
+                document.getElementById('bookPages').classList.add('show');
+            } else {
+                // Show book pages by default
+                document.getElementById('bookPages').classList.add('show');
+            }
             
-            <div class="status-bar">
-                <div class="status-indicator" id="statusIndicator">
-                    <i class="fas fa-circle"></i>
-                    <span id="statusText">Ready to listen</span>
-                </div>
-                <div class="controls">
+            // Initialize the original VoiceConversation functionality
+            initializeVoiceConversation();
+        });
+
+        // Initialize the original VoiceConversation functionality
+        function initializeVoiceConversation() {
+            try {
+                console.log('Starting VoiceConversation initialization...');
+                
+                // Create missing elements and add them to the page
+                createMissingElements();
+                console.log('Missing elements created');
+                
+                // Initialize the VoiceConversation class
+                window.voiceConversation = new VoiceConversation();
+                console.log('VoiceConversation initialized successfully');
+                
+                // Test basic functionality
+                setTimeout(() => {
+                    console.log('Testing basic AI functionality...');
+                    if (window.voiceConversation && typeof window.voiceConversation.generateMockResponse === 'function') {
+                        const testResponse = window.voiceConversation.generateMockResponse('hello');
+                        console.log('AI test response:', testResponse);
+                    } else {
+                        console.error('VoiceConversation not properly initialized');
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error initializing VoiceConversation:', error);
+                alert('Error initializing AI functionality: ' + error.message);
+            }
+        }
+
+        // Create missing elements that the original script expects
+        function createMissingElements() {
+            console.log('Creating missing elements...');
+            
+            // Check which elements exist
+            const elements = {
+                conversationArea: document.getElementById('conversationContainer'),
+                textInput: document.getElementById('messageInput'),
+                sendButton: document.getElementById('sendBtn'),
+                voiceButton: document.getElementById('voiceButton'),
+                clearButton: document.getElementById('clearButton'),
+                settingsButton: document.getElementById('settingsButton'),
+                statusIndicator: document.getElementById('connectionStatus'),
+                statusText: document.getElementById('connectionText'),
+                settingsModal: document.getElementById('settingsModal'),
+                closeSettings: document.getElementById('closeSettings'),
+                voiceSelect: document.getElementById('voiceSelect'),
+                speechRate: document.getElementById('speechRate'),
+                speechPitch: document.getElementById('speechPitch'),
+                rateValue: document.getElementById('rateValue'),
+                pitchValue: document.getElementById('pitchValue'),
+                webcam: document.getElementById('videoElement'),
+                canvas: document.getElementById('canvas'),
+                captureButton: document.getElementById('captureButton'),
+                ocrStatus: document.getElementById('ocrStatus'),
+                confidenceFill: document.getElementById('confidenceFill'),
+                confidenceText: document.getElementById('confidenceValue')
+            };
+            
+            // Log which elements are found and which are missing
+            for (const [name, element] of Object.entries(elements)) {
+                if (element) {
+                    console.log(`✓ Found ${name}`);
+                } else {
+                    console.warn(`✗ Missing ${name}`);
+                }
+            }
+            
+            // Don't change existing IDs, just create missing elements
+
+            // Add voice button to input area
+            const inputArea = document.querySelector('.input-area');
+            if (inputArea && !document.getElementById('voiceButton')) {
+                const voiceBtn = document.createElement('button');
+                voiceBtn.id = 'voiceButton';
+                voiceBtn.className = 'voice-btn';
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                voiceBtn.title = 'Click to speak';
+                inputArea.insertBefore(voiceBtn, inputArea.firstChild);
+            }
+
+            // Add clear and settings buttons to status area
+            const statusArea = document.querySelector('.page-header');
+            if (statusArea && !document.getElementById('clearButton')) {
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'controls';
+                controlsDiv.innerHTML = `
                     <button id="clearButton" class="control-btn" title="Clear conversation">
                         <i class="fas fa-trash"></i>
                     </button>
                     <button id="settingsButton" class="control-btn" title="Settings">
                         <i class="fas fa-cog"></i>
                     </button>
-                </div>
-            </div>
-        </div>
-    </div>
+                `;
+                statusArea.appendChild(controlsDiv);
+            }
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Settings</h3>
-                <button class="close-btn" id="closeSettings">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="setting-group">
-                    <label for="voiceSelect">Voice:</label>
-                    <select id="voiceSelect">
-                        <option value="default">Default Voice</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label for="speechRate">Speech Rate:</label>
-                    <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="0.85">
-                    <span id="rateValue">0.85</span>
-                </div>
-                <div class="setting-group">
-                    <label for="speechPitch">Speech Pitch:</label>
-                    <input type="range" id="speechPitch" min="0" max="2" step="0.1" value="1.1">
-                    <span id="pitchValue">1.1</span>
-                </div>
-            </div>
-        </div>
-    </div>
+            // Add canvas for image capture
+            if (!document.getElementById('canvas')) {
+                const canvas = document.createElement('canvas');
+                canvas.id = 'canvas';
+                canvas.style.display = 'none';
+                document.body.appendChild(canvas);
+            }
+
+            // Add capture button to camera controls
+            const cameraControls = document.querySelector('.camera-controls');
+            if (cameraControls && !document.getElementById('captureButton')) {
+                const captureBtn = document.createElement('button');
+                captureBtn.id = 'captureButton';
+                captureBtn.className = 'camera-btn';
+                captureBtn.innerHTML = '<i class="fas fa-book-open"></i> Read This Page';
+                cameraControls.appendChild(captureBtn);
+            }
+
+            // Add OCR status to camera section
+            const cameraSection = document.querySelector('.camera-section');
+            if (cameraSection && !document.getElementById('ocrStatus')) {
+                const ocrStatus = document.createElement('div');
+                ocrStatus.id = 'ocrStatus';
+                ocrStatus.className = 'ocr-status';
+                ocrStatus.textContent = 'Position book page in camera view and say "read this page"';
+                cameraSection.appendChild(ocrStatus);
+            }
+
+            // Add settings modal
+            if (!document.getElementById('settingsModal')) {
+                const modal = document.createElement('div');
+                modal.id = 'settingsModal';
+                modal.className = 'modal';
+                modal.style.display = 'none';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Settings</h3>
+                            <button class="close-btn" id="closeSettings">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="setting-group">
+                                <label for="voiceSelect">Voice:</label>
+                                <select id="voiceSelect">
+                                    <option value="default">Default Voice</option>
+                                </select>
+                            </div>
+                            <div class="setting-group">
+                                <label for="speechRate">Speech Rate:</label>
+                                <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="0.85">
+                                <span id="rateValue">0.85</span>
+                            </div>
+                            <div class="setting-group">
+                                <label for="speechPitch">Speech Pitch:</label>
+                                <input type="range" id="speechPitch" min="0" max="2" step="0.1" value="1.1">
+                                <span id="pitchValue">1.1</span>
+                            </div>
+                            <div class="setting-group">
+                                <label for="openaiKey">OpenAI API Key:</label>
+                                <input type="password" id="openaiKey" placeholder="API key loaded from server (.env file)" readonly>
+                                <button id="refreshApiKey" style="margin-left: 10px; padding: 5px 10px;">Refresh</button>
+                                <button id="clearApiKey" style="margin-left: 5px; padding: 5px 10px;">Clear Cache</button>
+                                <small style="display: block; margin-top: 5px; color: #666;">
+                                    API key is loaded from server's .env file. Use "Refresh" to reload from server.
+                                </small>
+                            </div>
+                            <div class="setting-group">
+                                <label>Speech Test:</label>
+                                <button id="testSpeechBtn" style="padding: 8px 16px; margin-right: 10px;">Test Speech</button>
+                                <button id="testAIBtn" style="padding: 8px 16px; margin-right: 10px;">Test AI Response</button>
+                                <button id="testDirectBtn" style="padding: 8px 16px;">Test Direct Speech</button>
+                                <small style="display: block; margin-top: 5px; color: #666;">
+                                    Test speech synthesis and AI responses
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add event listeners for API key management
+                const refreshApiKeyBtn = document.getElementById('refreshApiKey');
+                const clearApiKeyBtn = document.getElementById('clearApiKey');
+                const openaiKeyInput = document.getElementById('openaiKey');
+                
+                // Load existing API key
+                const existingKey = localStorage.getItem('openai_api_key');
+                if (existingKey) {
+                    openaiKeyInput.value = '••••••••••••••••'; // Show masked key
+                } else {
+                    openaiKeyInput.value = 'Not loaded';
+                }
+                
+                refreshApiKeyBtn.addEventListener('click', async () => {
+                    if (window.voiceConversation) {
+                        // Clear cache and fetch fresh from server
+                        window.voiceConversation.clearOpenAIKey();
+                        try {
+                            const newKey = await window.voiceConversation.getOpenAIKey();
+                            if (newKey) {
+                                openaiKeyInput.value = '••••••••••••••••';
+                                alert('API key refreshed from server!');
+                            } else {
+                                openaiKeyInput.value = 'Not available';
+                                alert('No API key found on server.');
+                            }
+                        } catch (error) {
+                            alert('Error refreshing API key: ' + error.message);
+                        }
+                    }
+                });
+                
+                clearApiKeyBtn.addEventListener('click', () => {
+                    if (window.voiceConversation) {
+                        window.voiceConversation.clearOpenAIKey();
+                        openaiKeyInput.value = 'Not loaded';
+                        alert('API key cache cleared!');
+                    }
+                });
+                
+                // Add test button event listeners
+                const testSpeechBtn = document.getElementById('testSpeechBtn');
+                const testAIBtn = document.getElementById('testAIBtn');
+                const testDirectBtn = document.getElementById('testDirectBtn');
+                
+                testSpeechBtn.addEventListener('click', () => {
+                    if (window.voiceConversation) {
+                        console.log('Testing speech synthesis from settings...');
+                        window.voiceConversation.testSimpleSpeech();
+                    } else {
+                        alert('VoiceConversation not initialized');
+                    }
+                });
+                
+                testAIBtn.addEventListener('click', () => {
+                    if (window.voiceConversation) {
+                        console.log('Testing AI response from settings...');
+                        window.voiceConversation.testAIResponse();
+                    } else {
+                        alert('VoiceConversation not initialized');
+                    }
+                });
+                
+                testDirectBtn.addEventListener('click', () => {
+                    console.log('Testing direct speech synthesis...');
+                    window.testDirectSpeech();
+                });
+            }
+        }
+    </script>
 
     <script src="script.js"></script>
 </body>
