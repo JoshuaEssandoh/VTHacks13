@@ -4,6 +4,7 @@ const { AccessToken } = require('livekit-server-sdk');
 const OpenAI = require('openai');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -25,6 +26,31 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // JWT secret for session tokens
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+
+// ========================================
+// 🌐 CORS CONFIGURATION
+// ========================================
+// Configure CORS to allow Google OAuth and frontend requests
+app.use(cors({
+    origin: true, // Allow all origins for development
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
+
+// Additional CORS headers for Google OAuth
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 
 // Middleware
 app.use(express.json());
@@ -238,6 +264,8 @@ app.post('/api/auth/google', async (req, res) => {
             return res.status(400).json({ error: 'Credential is required' });
         }
 
+        console.log('Received Google credential, verifying...');
+
         // Verify the Google ID token
         const ticket = await googleClient.verifyIdToken({
             idToken: credential,
@@ -246,6 +274,8 @@ app.post('/api/auth/google', async (req, res) => {
 
         const payload = ticket.getPayload();
         const { sub: googleId, email, name, picture } = payload;
+
+        console.log('Google OAuth successful for user:', email);
 
         // Create user object
         const user = {
@@ -275,9 +305,25 @@ app.post('/api/auth/google', async (req, res) => {
 
     } catch (error) {
         console.error('Google OAuth error:', error);
+        
+        // More specific error handling
+        if (error.message.includes('Token used too early')) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Token used too early. Please try again.' 
+            });
+        }
+        
+        if (error.message.includes('Invalid token')) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid Google token. Please try signing in again.' 
+            });
+        }
+
         res.status(500).json({ 
             success: false,
-            error: 'Authentication failed' 
+            error: 'Authentication failed. Please check your Google OAuth configuration.' 
         });
     }
 });

@@ -9,6 +9,7 @@ class VoiceConversation {
         this.audioStream = null;
         
         this.initializeElements();
+        this.initializeCamera();
         // Skip LiveKit initialization for now
         // this.initializeLiveKit();
         this.initializeSpeechRecognition();
@@ -33,12 +34,93 @@ class VoiceConversation {
         this.speechPitch = document.getElementById('speechPitch');
         this.rateValue = document.getElementById('rateValue');
         this.pitchValue = document.getElementById('pitchValue');
+        this.webcam = document.getElementById('webcam');
+        this.canvas = document.getElementById('canvas');
+        this.captureButton = document.getElementById('captureButton');
+        this.ocrStatus = document.getElementById('ocrStatus');
+        this.currentPageText = ''; // Store current page text for questions
     }
 
     // LiveKit initialization disabled for testing
     async initializeLiveKit() {
         console.log('LiveKit initialization skipped for testing');
         return;
+    }
+
+    async initializeCamera() {
+        try {
+            // Get webcam access
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { width: 640, height: 480 } 
+            });
+            this.webcam.srcObject = stream;
+            
+            // Add capture button listener
+            this.captureButton.addEventListener('click', () => this.captureAndReadPage());
+            
+            this.updateOcrStatus('Ready to read books! Position a page in the camera.', 'ready');
+            
+        } catch (error) {
+            console.error('Camera access denied:', error);
+            this.updateOcrStatus('Camera access required for reading books', 'error');
+            this.captureButton.disabled = true;
+        }
+    }
+
+    async captureAndReadPage() {
+        this.updateOcrStatus('Reading page...', 'processing');
+        this.captureButton.disabled = true;
+        
+        // Capture image from webcam
+        const context = this.canvas.getContext('2d');
+        context.drawImage(this.webcam, 0, 0, 640, 480);
+        
+        // Convert to image data
+        const imageData = this.canvas.toDataURL('image/png');
+        
+        try {
+            // Use Tesseract to extract text
+            const result = await Tesseract.recognize(imageData, 'eng', {
+                logger: m => console.log(m) // Show progress in console
+            });
+            const extractedText = result.data.text.trim();
+            
+            if (extractedText.length > 10) {
+                this.readBookPage(extractedText);
+            } else {
+                this.updateOcrStatus('No text found. Try adjusting the book position.', 'error');
+                this.speakText('I cannot see any text clearly. Please adjust the book position and try again.');
+            }
+        } catch (error) {
+            console.error('OCR Error:', error);
+            this.updateOcrStatus('Error reading page', 'error');
+            this.speakText('Sorry, I had trouble reading the page. Please try again.');
+        }
+        
+        this.captureButton.disabled = false;
+    }
+
+    readBookPage(pageText) {
+        this.currentPageText = pageText; // Store for questions
+        this.updateOcrStatus('Page read successfully!', 'success');
+        
+        // Add to conversation
+        this.addMessage('Reading page from your book...', 'system');
+        this.addMessage(pageText, 'book');
+        
+        // Read the page aloud with slower, child-friendly pace
+        this.speakText(`Here's what I see on this page: ${pageText}`);
+        
+        // Add context to conversation history for AI
+        this.conversationHistory.push({ 
+            role: 'system', 
+            content: `The child just showed me a page from their book that says: "${pageText}". I should be ready to answer questions about this text in a child-friendly way.` 
+        });
+    }
+
+    updateOcrStatus(text, type = 'ready') {
+        this.ocrStatus.textContent = text;
+        this.ocrStatus.className = `ocr-status ${type}`;
     }
 
     initializeSpeechRecognition() {
@@ -128,7 +210,7 @@ class VoiceConversation {
                 if (voice) {
                     const option = document.createElement('option');
                     option.value = voices.indexOf(voice);
-                    option.textContent = `⭐ ${voice.name} (${voice.lang})`;
+                    option.textContent = `тнР ${voice.name} (${voice.lang})`;
                     option.style.fontWeight = 'bold';
                     this.voiceSelect.appendChild(option);
                     
@@ -326,7 +408,16 @@ class VoiceConversation {
         contentDiv.className = 'message-content';
         
         const icon = document.createElement('i');
-        icon.className = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
+        // Update icons for different message types
+        if (sender === 'user') {
+            icon.className = 'fas fa-user';
+        } else if (sender === 'book') {
+            icon.className = 'fas fa-book-open';
+        } else if (sender === 'system') {
+            icon.className = 'fas fa-info-circle';
+        } else {
+            icon.className = 'fas fa-robot';
+        }
         
         const textP = document.createElement('p');
         textP.textContent = text;
@@ -374,12 +465,14 @@ class VoiceConversation {
             <div class="message ai-message">
                 <div class="message-content">
                     <i class="fas fa-robot"></i>
-                    <p>Hello! I'm your AI assistant. Click the microphone button to start speaking, or type your message below. LiveKit is disabled for testing.</p>
+                    <p>Hello! I'm your reading helper! Hold up a page from your book to the camera and I'll read it to you. Then you can ask me questions about the story!</p>
                 </div>
             </div>
         `;
         this.conversationHistory = [];
-        this.updateStatus('Conversation cleared', 'ready');
+        this.currentPageText = '';
+        this.updateStatus('Ready to help with reading!', 'ready');
+        this.updateOcrStatus('Ready to read books! Position a page in the camera.', 'ready');
     }
 
     openSettings() {

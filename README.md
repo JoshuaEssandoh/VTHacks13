@@ -31,6 +31,8 @@ npm run server
 - 🎨 **Modern UI**: Beautiful gradient design with smooth animations
 - 🔄 **Real-time Audio Processing**: Advanced audio analysis and streaming
 - 💭 **Conversation Memory**: Maintains context across messages
+- 🔐 **Flexible Authentication**: Google OAuth or instant bypass for testing
+- 🚀 **One-Click Access**: Bypass authentication for immediate testing
 
 ## 🛠️ Installation
 
@@ -83,6 +85,19 @@ LIVEKIT_API_SECRET=secret
 PORT=3000
 ```
 
+## 🔐 Authentication Options
+
+### **Option 1: Bypass Authentication (Recommended for Testing)**
+1. Visit `http://localhost:3001`
+2. Click **"Continue without Google"** in the login overlay
+3. Instantly access all voice chat features
+
+### **Option 2: Google OAuth (Production)**
+1. Visit `http://localhost:3001`
+2. Click **"Continue with Google"**
+3. Complete Google authentication
+4. Access voice chat with your Google account
+
 ## 🧪 Testing
 
 ### **Test API Integration**
@@ -94,7 +109,7 @@ npm run test-api
 npm run test-health
 
 # Test voice conversation
-# Open http://localhost:3000 and try speaking/typing
+# Open http://localhost:3001 and try speaking/typing
 ```
 
 ### **Expected Results**
@@ -165,11 +180,12 @@ Customize colors, fonts, and layout in `styles.css`:
 ## 📁 Project Structure
 
 ```
-├── index.html              # Main HTML structure
+├── index.html              # Main HTML structure with integrated login
 ├── styles.css              # CSS styling and animations
 ├── script.js               # Frontend JavaScript functionality
 ├── livekit-integration.js  # LiveKit integration module
 ├── server.js               # Express server with OpenAI integration
+├── login.html              # Google OAuth login page
 ├── setup.js                # Automated setup script
 ├── livekit.yaml           # LiveKit server configuration
 ├── package.json           # Dependencies and scripts
@@ -177,6 +193,7 @@ Customize colors, fonts, and layout in `styles.css`:
 ├── env.example            # Environment template
 ├── .gitignore             # Git ignore rules
 ├── QUICK_START.md         # Quick start guide
+├── INSTALLATION.md        # Detailed installation guide
 └── README.md              # This documentation
 ```
 
