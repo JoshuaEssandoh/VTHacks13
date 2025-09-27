@@ -222,7 +222,7 @@ class VoiceConversation {
         console.log('Number of classes:', this.maxPredictions);
         console.log('Class labels:', this.teachableModel.getClassLabels());
         
-        this.confidenceText.textContent = 'AI model loaded! Position a book in view.';
+        this.confidenceText.textContent = 'Hold up your book!';
     }
 
 
@@ -1090,44 +1090,44 @@ class VoiceConversation {
         
         // Greeting responses
         if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
-            return "Hello there, little reader! 👋 I'm so excited to help you with your reading adventure! What book would you like to explore today?";
+            return "Hello there, little reader! I'm so excited to help you with your reading adventure! What book would you like to explore today?";
         }
         
         // Book-related responses
         if (lowerInput.includes('book') || lowerInput.includes('read') || lowerInput.includes('story')) {
-            return "I love books too! 📚 Show me a page from your book and I'll help you understand it better. Just say 'read this page' or click the camera button!";
+            return "I love books too! Show me a page from your book and I'll help you understand it better. Just say 'read this page' or click the camera button!";
         }
         
         // Help responses
         if (lowerInput.includes('help') || lowerInput.includes('what can you do')) {
-            return "I'm your friendly bookworm assistant! 🐛 I can help you read book pages, answer questions about stories, and make reading fun! Try showing me a book page or asking me about your favorite stories!";
+            return "I'm your friendly bookworm assistant! I can help you read book pages, answer questions about stories, and make reading fun! Try showing me a book page or asking me about your favorite stories!";
         }
         
         // Question responses
         if (lowerInput.includes('?') || lowerInput.includes('what') || lowerInput.includes('how') || lowerInput.includes('why')) {
-            return "That's a great question! 🤔 I'd love to help you find the answer. If you show me a book page, I can read it and help explain what it means!";
+            return "That's a great question! I'd love to help you find the answer. If you show me a book page, I can read it and help explain what it means!";
         }
         
         // Thank you responses
         if (lowerInput.includes('thank') || lowerInput.includes('thanks')) {
-            return "You're very welcome! 😊 I'm so happy to help you with your reading! Is there anything else you'd like to know about books?";
+            return "You're very welcome! I'm so happy to help you with your reading! Is there anything else you'd like to know about books?";
         }
         
         // Reading-related responses
         if (lowerInput.includes('read') || lowerInput.includes('page') || lowerInput.includes('text')) {
-            return "I'm ready to read with you! 📖 Just show me a book page in the camera and I'll tell you all about it!";
+            return "I'm ready to read with you! Just show me a book page in the camera and I'll tell you all about it!";
         }
         
         // Default responses
         const responses = [
-            "That's so interesting! Tell me more about what you're thinking! 🤔",
-            "I love hearing from you! What book are you reading today? 📚",
-            "You're such a great reader! Keep asking questions! 🌟",
-            "I'm here to help you with all your reading adventures! What would you like to explore? ✨",
-            "That sounds wonderful! I'd love to learn more about it! 😊",
-            "You're doing such a great job with your reading! Keep it up! 🎉",
-            "I'm so excited to help you discover new stories! What's your favorite book? 📖",
-            "You're asking such smart questions! I love helping curious readers like you! 🌈"
+            "That's so interesting! Tell me more about what you're thinking!",
+            "I love hearing from you! What book are you reading today?",
+            "You're such a great reader! Keep asking questions!",
+            "I'm here to help you with all your reading adventures! What would you like to explore?",
+            "That sounds wonderful! I'd love to learn more about it!",
+            "You're doing such a great job with your reading! Keep it up!",
+            "I'm so excited to help you discover new stories! What's your favorite book?",
+            "You're asking such smart questions! I love helping curious readers like you!"
         ];
         
         return responses[Math.floor(Math.random() * responses.length)];
@@ -1521,16 +1521,16 @@ class VoiceConversation {
         utterance.volume = 1.0;
         
         utterance.onstart = () => {
-            console.log('✅ Simple speech started successfully!');
+            console.log('Simple speech started successfully!');
             alert('Speech started! Check your speakers.');
         };
         
         utterance.onend = () => {
-            console.log('✅ Simple speech ended successfully!');
+            console.log('Simple speech ended successfully!');
         };
         
         utterance.onerror = (event) => {
-            console.error('❌ Simple speech error:', event.error);
+            console.error('Simple speech error:', event.error);
             console.error('Error details:', {
                 error: event.error,
                 type: event.type,
@@ -1552,7 +1552,7 @@ class VoiceConversation {
             speechSynthesis.speak(utterance);
             console.log('speechSynthesis.speak called successfully');
         } catch (error) {
-            console.error('❌ Error calling speechSynthesis.speak:', error);
+            console.error('Error calling speechSynthesis.speak:', error);
             alert('Error calling speech synthesis: ' + error.message);
         }
     }
@@ -1573,22 +1573,22 @@ class VoiceConversation {
         utterance.volume = 0.9;
         
         utterance.onstart = () => {
-            console.log('✅ Quick test speech started successfully');
+            console.log('Quick test speech started successfully');
         };
         
         utterance.onend = () => {
-            console.log('✅ Quick test speech ended successfully');
+            console.log('Quick test speech ended successfully');
         };
         
         utterance.onerror = (event) => {
-            console.error('❌ Quick test speech error:', event.error);
+            console.error('Quick test speech error:', event.error);
         };
         
         try {
             window.speechSynthesis.speak(utterance);
-            console.log('✅ Quick test speech synthesis called successfully');
+            console.log('Quick test speech synthesis called successfully');
         } catch (error) {
-            console.error('❌ Error calling quick test speech synthesis:', error);
+            console.error('Error calling quick test speech synthesis:', error);
         }
     }
 
@@ -1720,16 +1720,16 @@ window.testSpeechSynthesis = () => {
     utterance.volume = 1.0;
     
     utterance.onstart = () => {
-        console.log('✅ Speech started successfully!');
+        console.log('Speech started successfully!');
         alert('Speech started! Check your speakers.');
     };
     
     utterance.onend = () => {
-        console.log('✅ Speech ended successfully!');
+        console.log('Speech ended successfully!');
     };
     
     utterance.onerror = (event) => {
-        console.error('❌ Speech error:', event.error);
+        console.error('Speech error:', event.error);
         alert('Speech error: ' + event.error);
     };
     
