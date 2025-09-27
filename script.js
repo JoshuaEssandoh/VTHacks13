@@ -27,17 +27,7 @@ class VoiceConversation {
         console.log('Speech rate element:', this.speechRate);
         console.log('Speech pitch element:', this.speechPitch);
         
-        // Add click listener to test speech synthesis after user interaction
-        document.addEventListener('click', () => {
-            console.log('User clicked, testing speech synthesis...');
-            this.testSimpleSpeech();
-        }, { once: true });
-        
-        // Also test on any user interaction
-        document.addEventListener('keydown', () => {
-            console.log('User pressed key, testing speech synthesis...');
-            this.testSimpleSpeech();
-        }, { once: true });
+        // Speech synthesis testing removed - no automatic testing on user interaction
     }
 
     initializeElements() {
@@ -82,29 +72,105 @@ class VoiceConversation {
 
     async initializeCamera() {
         try {
+            // Initialize camera controls
+            this.initializeCameraControls();
+            
+            // Load Teachable Machine model
+            await this.loadTeachableModel();
+            
+            this.updateOcrStatus('Click "Start Camera" to begin reading books!', 'ready');
+            
+        } catch (error) {
+            console.error('Camera initialization failed:', error);
+            this.updateOcrStatus('Camera initialization failed', 'error');
+        }
+    }
+
+    initializeCameraControls() {
+        const startBtn = document.getElementById('startCameraBtn');
+        const stopBtn = document.getElementById('stopCameraBtn');
+        
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startCamera());
+        }
+        
+        if (stopBtn) {
+            stopBtn.addEventListener('click', () => this.stopCamera());
+        }
+        
+        // Initially hide stop button
+        if (stopBtn) {
+            stopBtn.style.display = 'none';
+        }
+    }
+
+    async startCamera() {
+        try {
+            console.log('Starting camera...');
+            this.updateOcrStatus('Starting camera...', 'processing');
+            
             // Get webcam access
             const stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { width: 640, height: 480 } 
             });
+            
+            this.audioStream = stream; // Store stream for later cleanup
             this.webcam.srcObject = stream;
             
             // Add capture button listener
-            this.captureButton.addEventListener('click', () => this.captureAndReadPage());
+            if (this.captureButton) {
+                this.captureButton.addEventListener('click', () => this.captureAndReadPage());
+            }
             
-            // Load Teachable Machine model
-            await this.loadTeachableModel();
+            // Show/hide buttons
+            const startBtn = document.getElementById('startCameraBtn');
+            const stopBtn = document.getElementById('stopCameraBtn');
+            
+            if (startBtn) startBtn.style.display = 'none';
+            if (stopBtn) stopBtn.style.display = 'inline-block';
             
             // Start book detection after a short delay to ensure webcam is ready
             setTimeout(() => {
                 this.startBookDetection();
             }, 1000);
             
-            this.updateOcrStatus('Ready to read and analyze books! Position a page in the camera and say "read this page".', 'ready');
+            this.updateOcrStatus('Camera started! Position a page in the camera and say "read this page".', 'ready');
             
         } catch (error) {
             console.error('Camera access denied:', error);
-            this.updateOcrStatus('Camera access required for reading books', 'error');
+            this.updateOcrStatus('Camera access denied. Please allow camera access and try again.', 'error');
         }
+    }
+
+    stopCamera() {
+        console.log('Stopping camera...');
+        this.updateOcrStatus('Stopping camera...', 'processing');
+        
+        // Stop all video tracks
+        if (this.audioStream) {
+            this.audioStream.getTracks().forEach(track => {
+                track.stop();
+                console.log('Stopped track:', track.kind);
+            });
+            this.audioStream = null;
+        }
+        
+        // Clear video source
+        if (this.webcam) {
+            this.webcam.srcObject = null;
+        }
+        
+        // Show/hide buttons
+        const startBtn = document.getElementById('startCameraBtn');
+        const stopBtn = document.getElementById('stopCameraBtn');
+        
+        if (startBtn) startBtn.style.display = 'inline-block';
+        if (stopBtn) stopBtn.style.display = 'none';
+        
+        // Stop book detection
+        this.stopBookDetection();
+        
+        this.updateOcrStatus('Camera stopped. Click "Start Camera" to begin again.', 'ready');
     }
 
     async captureAndReadPage() {
@@ -172,6 +238,23 @@ class VoiceConversation {
         } else {
             console.log('Teachable Machine model not loaded');
             this.confidenceText.textContent = 'Teachable Machine model not loaded';
+        }
+    }
+
+    stopBookDetection() {
+        console.log('Stopping book detection...');
+        
+        if (this.detectionInterval) {
+            clearInterval(this.detectionInterval);
+            this.detectionInterval = null;
+        }
+        
+        // Reset confidence indicator
+        if (this.confidenceText) {
+            this.confidenceText.textContent = '0%';
+        }
+        if (this.confidenceFill) {
+            this.confidenceFill.style.width = '0%';
         }
     }
 
@@ -1173,7 +1256,12 @@ class VoiceConversation {
         
         try {
             console.log('Calling this.synthesis.speak...');
-            this.synthesis.speak(utterance);
+            console.log('this.synthesis:', this.synthesis);
+            console.log('window.speechSynthesis:', window.speechSynthesis);
+            
+            // Use window.speechSynthesis as fallback if this.synthesis is null
+            const synthesis = this.synthesis || window.speechSynthesis;
+            synthesis.speak(utterance);
             console.log('speechSynthesis.speak called successfully');
         } catch (error) {
             console.error('Error calling speech synthesis:', error);
@@ -1611,6 +1699,15 @@ window.testSpeechSynthesis = () => {
     };
     
     console.log('Starting speech synthesis...');
+    speechSynthesis.speak(utterance);
+};
+
+window.testQuickSpeech = () => {
+    console.log('Quick speech test...');
+    const utterance = new SpeechSynthesisUtterance('Quick test!');
+    utterance.onstart = () => console.log('Quick test started');
+    utterance.onend = () => console.log('Quick test ended');
+    utterance.onerror = (event) => console.error('Quick test error:', event.error);
     speechSynthesis.speak(utterance);
 };
 

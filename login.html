@@ -248,7 +248,7 @@
             justify-content: center;
             gap: 12px;
             font-family: 'Comic Neue', sans-serif;
-            text-transform: uppercase;
+            /* text-transform: uppercase; */
             letter-spacing: 1px;
             border: 3px solid rgba(255, 255, 255, 0.5);
             position: relative;
@@ -338,7 +338,7 @@
             justify-content: center;
             gap: 12px;
             font-family: 'Comic Neue', sans-serif;
-            text-transform: uppercase;
+            /* text-transform: uppercase; */
             letter-spacing: 1px;
             border: 3px solid rgba(255, 255, 255, 0.5);
             position: relative;
@@ -895,5 +895,54 @@
             }
         });
     </script>
+<script>
+    // 3D Login Card Mouse Tracking
+document.addEventListener('DOMContentLoaded', function() {
+    const loginCard = document.querySelector('.login-card');
+    
+    let isMouseMoving = false;
+    let mouseTimeout;
+    
+    function handleMouseMove(e) {
+        const rect = loginCard.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        
+        // Calculate rotation based on mouse position
+        const rotateX = (mouseY - centerY) / 15;
+        const rotateY = (mouseX - centerX) / 12;
+        
+        // Limit rotation for subtle effect
+        const limitedRotateX = Math.max(-15, Math.min(15, rotateX));
+        const limitedRotateY = Math.max(-20, Math.min(20, rotateY));
+        
+        // Apply transform to your existing card
+        loginCard.style.transform = `
+            rotateX(${-limitedRotateX}deg) 
+            rotateY(${limitedRotateY}deg) 
+            scale(1.02)
+        `;
+        
+        isMouseMoving = true;
+        clearTimeout(mouseTimeout);
+        
+        mouseTimeout = setTimeout(() => {
+            isMouseMoving = false;
+            loginCard.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+        }, 2000);
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    
+    loginCard.addEventListener('mouseleave', () => {
+        clearTimeout(mouseTimeout);
+        loginCard.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+        isMouseMoving = false;
+    });
+});
+</script>
 </body>
 </html>
