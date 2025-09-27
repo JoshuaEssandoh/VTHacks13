@@ -70,3 +70,4 @@ temp/
 # - Never commit sensitive data to version control
 # - Use environment variables in production
 # - Keep your API keys secure
+venv/

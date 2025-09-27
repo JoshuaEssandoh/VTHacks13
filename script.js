@@ -16,6 +16,15 @@ class VoiceConversation {
         this.initializeEventListeners();
         this.loadVoices();
         this.setupSettings();
+        
+        // Automatically start microphone listening when page loads
+        this.autoStartListening();
+        
+        // Test speech synthesis on load
+        setTimeout(() => {
+            console.log('Testing speech synthesis...');
+            this.speakText('Hello! Speech synthesis is working.');
+        }, 2000);
     }
 
     initializeElements() {
@@ -58,12 +67,11 @@ class VoiceConversation {
             // Add capture button listener
             this.captureButton.addEventListener('click', () => this.captureAndReadPage());
             
-            this.updateOcrStatus('Ready to read books! Position a page in the camera.', 'ready');
+            this.updateOcrStatus('Ready to read and analyze books! Position a page in the camera and say "read this page".', 'ready');
             
         } catch (error) {
             console.error('Camera access denied:', error);
             this.updateOcrStatus('Camera access required for reading books', 'error');
-            this.captureButton.disabled = true;
         }
     }
 
@@ -98,6 +106,103 @@ class VoiceConversation {
         }
         
         this.captureButton.disabled = false;
+    }
+
+    async captureAndReadPageWithAI() {
+        this.updateOcrStatus('Reading page...', 'processing');
+        
+        // Capture image from webcam
+        const context = this.canvas.getContext('2d');
+        context.drawImage(this.webcam, 0, 0, 640, 480);
+        
+        // Convert to image data
+        const imageData = this.canvas.toDataURL('image/png');
+        
+        try {
+            // Use Tesseract to extract text
+            const result = await Tesseract.recognize(imageData, 'eng', {
+                logger: m => console.log(m) // Show progress in console
+            });
+            const extractedText = result.data.text.trim();
+            
+            if (extractedText.length > 10) {
+                await this.processBookPageWithAI(extractedText);
+            } else {
+                this.updateOcrStatus('No text found. Try adjusting the book position.', 'error');
+                this.speakText('I cannot see any text clearly. Please adjust the book position and try again.');
+            }
+        } catch (error) {
+            console.error('OCR Error:', error);
+            this.updateOcrStatus('Error reading page', 'error');
+            this.speakText('Sorry, I had trouble reading the page. Please try again.');
+        }
+    }
+
+    async processBookPageWithAI(extractedText) {
+        this.currentPageText = extractedText; // Store for questions
+        this.updateOcrStatus('Processing with AI...', 'processing');
+        
+        // Add to conversation
+        this.addMessage('Reading page from your book...', 'system');
+        this.addMessage(extractedText, 'book');
+        
+        try {
+            // Create a prompt for OpenAI to analyze and respond to the book page
+            const aiPrompt = `I just read a page from a book that contains the following text: "${extractedText}". 
+            
+            Please provide a helpful, engaging response that:
+            1. Acknowledges what was read
+            2. Provides a brief summary or highlights key points
+            3. Asks an engaging question to encourage discussion
+            4. Uses child-friendly language
+            5. Keeps the response conversational and encouraging
+            
+            Make it sound natural and friendly, as if you're a helpful reading assistant.`;
+
+            // Add the book content to conversation history
+            this.conversationHistory.push({ 
+                role: 'system', 
+                content: `The child just showed me a page from their book that says: "${extractedText}". I should be ready to answer questions about this text in a child-friendly way.` 
+            });
+
+            // Generate AI response
+            this.updateStatus('AI is analyzing the page...', 'thinking');
+            
+            const response = await fetch('/api/ai-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: aiPrompt,
+                    conversationHistory: this.conversationHistory
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const aiResponse = data.response;
+            
+            // Add AI response to conversation
+            this.addMessage(aiResponse, 'ai');
+            this.conversationHistory.push({ role: 'assistant', content: aiResponse });
+            
+            // Speak the AI response
+            this.speakText(aiResponse);
+            
+            this.updateOcrStatus('Page processed successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Error processing book page with AI:', error);
+            
+            // Fallback to simple reading if AI fails
+            this.addMessage('I can see the text from your book page. Let me read it to you:', 'ai');
+            this.speakText(`Here's what I see on this page: ${extractedText}`);
+            this.updateOcrStatus('Page read (AI processing failed)', 'success');
+        }
     }
 
     readBookPage(pageText) {
@@ -145,7 +250,20 @@ class VoiceConversation {
             
             this.recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
-                this.updateStatus('Error: ' + event.error, 'error');
+                let errorMessage = 'Error: ' + event.error;
+                
+                // Provide more user-friendly error messages
+                if (event.error === 'not-allowed') {
+                    errorMessage = 'Microphone permission denied. Please allow microphone access and refresh the page.';
+                } else if (event.error === 'no-speech') {
+                    errorMessage = 'No speech detected. Try speaking again.';
+                } else if (event.error === 'audio-capture') {
+                    errorMessage = 'Microphone not available. Please check your microphone connection.';
+                } else if (event.error === 'network') {
+                    errorMessage = 'Network error. Please check your internet connection.';
+                }
+                
+                this.updateStatus(errorMessage, 'error');
                 this.isListening = false;
                 this.updateUI();
             };
@@ -187,6 +305,7 @@ class VoiceConversation {
     loadVoices() {
         const loadVoices = () => {
             const voices = this.synthesis.getVoices();
+            console.log('Loading voices, found:', voices.length);
             this.voiceSelect.innerHTML = '<option value="default">Default Voice</option>';
             
             // Preferred voices for more natural sound (in order of preference)
@@ -210,7 +329,7 @@ class VoiceConversation {
                 if (voice) {
                     const option = document.createElement('option');
                     option.value = voices.indexOf(voice);
-                    option.textContent = `тнР ${voice.name} (${voice.lang})`;
+                    option.textContent = `★ ${voice.name} (${voice.lang})`;
                     option.style.fontWeight = 'bold';
                     this.voiceSelect.appendChild(option);
                     
@@ -245,12 +364,25 @@ class VoiceConversation {
                     this.voiceSelect.appendChild(option);
                 }
             });
+            
+            console.log('Voice loading complete, selected voice:', this.voiceSelect.value);
         };
 
+        // Try to load voices immediately
         if (this.synthesis.getVoices().length > 0) {
+            console.log('Voices available immediately');
             loadVoices();
         } else {
+            console.log('Waiting for voices to load...');
             this.synthesis.onvoiceschanged = loadVoices;
+            
+            // Fallback: try loading voices after a delay
+            setTimeout(() => {
+                if (this.synthesis.getVoices().length > 0) {
+                    console.log('Voices loaded after delay');
+                    loadVoices();
+                }
+            }, 1000);
         }
     }
 
@@ -291,7 +423,13 @@ class VoiceConversation {
         this.addMessage(text, 'user');
         this.conversationHistory.push({ role: 'user', content: text });
         
-        // Generate AI response
+        // Check for OCR voice commands first
+        if (this.isOCRCommand(text)) {
+            this.handleOCRCommand(text);
+            return;
+        }
+        
+        // Generate AI response for regular conversation
         this.generateAIResponse(text);
     }
 
@@ -353,7 +491,17 @@ class VoiceConversation {
     }
 
     speakText(text) {
+        console.log('Attempting to speak text:', text);
+        
+        // Check if speech synthesis is supported
+        if (!('speechSynthesis' in window)) {
+            console.error('Speech synthesis not supported');
+            this.updateStatus('Speech synthesis not supported', 'error');
+            return;
+        }
+        
         if (this.isSpeaking) {
+            console.log('Canceling current speech');
             this.synthesis.cancel();
         }
         
@@ -361,14 +509,24 @@ class VoiceConversation {
         
         // Apply voice settings
         const voices = this.synthesis.getVoices();
+        console.log('Available voices:', voices.length);
+        
         const selectedVoiceIndex = this.voiceSelect.value;
         if (selectedVoiceIndex !== 'default' && voices[selectedVoiceIndex]) {
             utterance.voice = voices[selectedVoiceIndex];
+            console.log('Using voice:', voices[selectedVoiceIndex].name);
         }
         
         utterance.rate = parseFloat(this.speechRate.value);
         utterance.pitch = parseFloat(this.speechPitch.value);
         utterance.volume = 0.9; // Higher volume for clarity
+        
+        console.log('Speech settings:', {
+            rate: utterance.rate,
+            pitch: utterance.pitch,
+            volume: utterance.volume,
+            voice: utterance.voice ? utterance.voice.name : 'default'
+        });
         
         // Add natural pauses and emphasis
         utterance.text = text
@@ -380,23 +538,29 @@ class VoiceConversation {
             .trim();
         
         utterance.onstart = () => {
+            console.log('Speech started');
             this.isSpeaking = true;
             this.updateStatus('Speaking...', 'speaking');
         };
         
         utterance.onend = () => {
+            console.log('Speech ended');
             this.isSpeaking = false;
             this.updateStatus('Ready to listen', 'ready');
             this.updateUI(); // Re-enable text input
+            
+            // Automatically restart voice recognition after speaking
+            this.autoRestartListening();
         };
         
         utterance.onerror = (event) => {
             console.error('Speech synthesis error:', event.error);
             this.isSpeaking = false;
-            this.updateStatus('Speech error', 'error');
+            this.updateStatus('Speech error: ' + event.error, 'error');
             this.updateUI(); // Re-enable text input
         };
         
+        console.log('Starting speech synthesis...');
         this.synthesis.speak(utterance);
     }
 
@@ -465,14 +629,14 @@ class VoiceConversation {
             <div class="message ai-message">
                 <div class="message-content">
                     <i class="fas fa-robot"></i>
-                    <p>Hello! I'm your reading helper! Hold up a page from your book to the camera and I'll read it to you. Then you can ask me questions about the story!</p>
+                    <p>Hello! I'm your reading helper! The microphone is active and listening! You can say "read this page", "scan the book", or "what do you see" to have me analyze book pages. Just start speaking!</p>
                 </div>
             </div>
         `;
         this.conversationHistory = [];
         this.currentPageText = '';
-        this.updateStatus('Ready to help with reading!', 'ready');
-        this.updateOcrStatus('Ready to read books! Position a page in the camera.', 'ready');
+        this.updateStatus('Microphone is active - start speaking!', 'listening');
+        this.updateOcrStatus('Ready to read and analyze books! Position a page in the camera and say "read this page".', 'ready');
     }
 
     openSettings() {
@@ -481,6 +645,69 @@ class VoiceConversation {
 
     closeSettingsModal() {
         this.settingsModal.style.display = 'none';
+    }
+
+    async autoStartListening() {
+        // Wait a moment for the page to fully load and speech recognition to be ready
+        setTimeout(async () => {
+            if (this.recognition && !this.isListening && !this.isSpeaking) {
+                try {
+                    console.log('Auto-starting microphone...');
+                    this.recognition.start();
+                    this.updateStatus('Microphone is now active - start speaking!', 'listening');
+                } catch (error) {
+                    console.error('Failed to auto-start microphone:', error);
+                    this.updateStatus('Microphone permission needed - click the microphone button to start', 'error');
+                }
+            }
+        }, 1000); // 1 second delay to ensure everything is initialized
+    }
+
+    autoRestartListening() {
+        // Wait a moment after speaking ends before restarting listening
+        setTimeout(() => {
+            if (this.recognition && !this.isListening && !this.isSpeaking) {
+                try {
+                    console.log('Auto-restarting microphone...');
+                    this.recognition.start();
+                    this.updateStatus('Microphone is active - start speaking!', 'listening');
+                } catch (error) {
+                    console.error('Failed to auto-restart microphone:', error);
+                    this.updateStatus('Click microphone button to restart', 'error');
+                }
+            }
+        }, 500); // Short delay to ensure speech has fully ended
+    }
+
+    isOCRCommand(text) {
+        const lowerText = text.toLowerCase();
+        const ocrCommands = [
+            'read this page',
+            'scan this page',
+            'read the page',
+            'scan the page',
+            'read the book',
+            'scan the book',
+            'capture the page',
+            'take a picture',
+            'read what you see',
+            'what do you see',
+            'analyze this page',
+            'process this page'
+        ];
+        
+        return ocrCommands.some(command => lowerText.includes(command));
+    }
+
+    async handleOCRCommand(text) {
+        console.log('OCR command detected:', text);
+        
+        // Add a system message about the OCR command
+        this.addMessage('I heard you want me to read a page! Let me capture and analyze it for you.', 'system');
+        this.speakText('I heard you want me to read a page! Let me capture and analyze it for you.');
+        
+        // For voice commands, use AI analysis
+        await this.captureAndReadPageWithAI();
     }
 }
 
