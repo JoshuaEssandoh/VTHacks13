@@ -1044,7 +1044,7 @@ class VoiceConversation {
             try {
                 // Fetch API key from server
                 console.log('Fetching OpenAI API key from server...');
-                const response = await fetch('http://localhost:3001/api/openai-key');
+                const response = await fetch('http://localhost:3000/api/openai-key');
                 if (response.ok) {
                     const data = await response.json();
                     apiKey = data.apiKey;
