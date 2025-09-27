@@ -23,6 +23,8 @@ class VoiceConversation {
         // Test speech synthesis on load
         setTimeout(() => {
             console.log('Testing speech synthesis...');
+            console.log('Speech synthesis available:', 'speechSynthesis' in window);
+            console.log('Available voices:', this.synthesis.getVoices().length);
             this.speakText('Hello! Speech synthesis is working.');
         }, 2000);
     }
@@ -47,7 +49,11 @@ class VoiceConversation {
         this.canvas = document.getElementById('canvas');
         this.captureButton = document.getElementById('captureButton');
         this.ocrStatus = document.getElementById('ocrStatus');
+        this.confidenceFill = document.getElementById('confidenceFill');
+        this.confidenceText = document.getElementById('confidenceText');
         this.currentPageText = ''; // Store current page text for questions
+        this.teachableModel = null;
+        this.maxPredictions = 0;
     }
 
     // LiveKit initialization disabled for testing
@@ -66,6 +72,14 @@ class VoiceConversation {
             
             // Add capture button listener
             this.captureButton.addEventListener('click', () => this.captureAndReadPage());
+            
+            // Load Teachable Machine model
+            await this.loadTeachableModel();
+            
+            // Start book detection after a short delay to ensure webcam is ready
+            setTimeout(() => {
+                this.startBookDetection();
+            }, 1000);
             
             this.updateOcrStatus('Ready to read and analyze books! Position a page in the camera and say "read this page".', 'ready');
             
@@ -106,6 +120,310 @@ class VoiceConversation {
         }
         
         this.captureButton.disabled = false;
+    }
+
+    async loadTeachableModel() {
+        this.confidenceText.textContent = 'Loading AI model...';
+        
+        // Load your actual Teachable Machine model
+        const modelURL = "https://teachablemachine.withgoogle.com/models/Ves4Ftz2m/model.json";
+        const metadataURL = "https://teachablemachine.withgoogle.com/models/Ves4Ftz2m/metadata.json";   
+        
+        console.log('Attempting to load model from:', modelURL);
+        
+        this.teachableModel = await tmImage.load(modelURL, metadataURL);
+        this.maxPredictions = this.teachableModel.getTotalClasses();
+        
+        console.log('Teachable Machine model loaded successfully');
+        console.log('Number of classes:', this.maxPredictions);
+        console.log('Class labels:', this.teachableModel.getClassLabels());
+        
+        this.confidenceText.textContent = 'AI model loaded! Position a book in view.';
+    }
+
+
+    startBookDetection() {
+        console.log('Starting book detection...');
+        
+        if (this.teachableModel) {
+            console.log('Using Teachable Machine model');
+            // Use Teachable Machine model
+            this.detectionInterval = setInterval(async () => {
+                await this.detectBookWithTeachableModel();
+            }, 1000); // Check every second
+        } else {
+            console.log('Teachable Machine model not loaded');
+            this.confidenceText.textContent = 'Teachable Machine model not loaded';
+        }
+    }
+
+    async detectBookWithTeachableModel() {
+        if (!this.teachableModel || !this.webcam.videoWidth) return;
+        
+        try {
+            // Create a temporary canvas for the webcam frame
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = 200;
+            tempCanvas.height = 200;
+            
+            // Draw webcam frame to temp canvas
+            tempCtx.drawImage(this.webcam, 0, 0, 200, 200);
+            
+            // Predict using Teachable Machine model
+            const prediction = await this.teachableModel.predict(tempCanvas);
+            
+            // Log all predictions for debugging
+            console.log('Teachable Machine predictions:', prediction);
+            
+            // Find book and no_book confidence scores
+            let bookConfidence = 0;
+            let noBookConfidence = 0;
+            let predictedClass = '';
+            
+            for (let i = 0; i < this.maxPredictions; i++) {
+                const confidence = prediction[i].probability;
+                const className = prediction[i].className.toLowerCase();
+                
+                console.log(`${className}: ${(confidence * 100).toFixed(1)}%`);
+                
+                if (className.includes('book') && !className.includes('no')) {
+                    bookConfidence = confidence;
+                    predictedClass = 'Book';
+                } else if (className.includes('no') || className.includes('empty') || className.includes('background')) {
+                    noBookConfidence = confidence;
+                    if (!predictedClass) predictedClass = 'No Book';
+                }
+            }
+            
+            // Store predictions for display
+            this.lastPredictions = {
+                book: bookConfidence,
+                no_book: noBookConfidence
+            };
+            
+            // Use the higher confidence score
+            const maxConfidence = Math.max(bookConfidence, noBookConfidence);
+            const finalClass = bookConfidence > noBookConfidence ? 'Book' : 'No Book';
+            
+            console.log(`Final prediction: ${finalClass} (${(maxConfidence * 100).toFixed(1)}%)`);
+            
+            // Update UI based on prediction
+            this.updateConfidenceIndicator(maxConfidence, finalClass);
+            
+        } catch (error) {
+            console.error('Error in Teachable Machine detection:', error);
+        }
+    }
+
+    async detectBookWithComputerVision() {
+        if (!this.webcam.videoWidth) {
+            console.log('Webcam not ready yet');
+            return;
+        }
+        
+        try {
+            // Use computer vision heuristics for book detection
+            const bookConfidence = this.calculateBookConfidence();
+            
+            console.log('Computer vision confidence:', bookConfidence);
+            
+            // Update UI
+            this.updateConfidenceIndicator(bookConfidence, 'Book');
+            
+        } catch (error) {
+            console.error('Error in computer vision detection:', error);
+            // Fallback to a basic test confidence
+            this.updateConfidenceIndicator(0.3, 'Book (Test Mode)');
+        }
+    }
+
+    calculateBookConfidence() {
+        // Use computer vision techniques for book detection
+        const textPatternConfidence = this.detectTextPatterns();
+        const edgeConfidence = this.detectRectangularEdges();
+        const contrastConfidence = this.detectTextContrast();
+        
+        console.log('Detection components:', {
+            text: textPatternConfidence,
+            edge: edgeConfidence,
+            contrast: contrastConfidence
+        });
+        
+        // Combine multiple detection methods for better accuracy
+        const combinedConfidence = (
+            textPatternConfidence * 0.4 +
+            edgeConfidence * 0.3 +
+            contrastConfidence * 0.3
+        );
+        
+        console.log('Combined confidence:', combinedConfidence);
+        return Math.min(1, combinedConfidence);
+    }
+
+    detectTextPatterns() {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 200;
+            
+            ctx.drawImage(this.webcam, 0, 0, 200, 200);
+            const imageData = ctx.getImageData(0, 0, 200, 200);
+            const data = imageData.data;
+            
+            // Convert to grayscale and detect text-like patterns
+            let textLikePixels = 0;
+            let totalPixels = 0;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const brightness = (r + g + b) / 3;
+                
+                // Look for high contrast areas (potential text)
+                if (brightness > 30 && brightness < 220) {
+                    textLikePixels++;
+                }
+                totalPixels++;
+            }
+            
+            const textRatio = textLikePixels / totalPixels;
+            
+            // Return confidence based on text-like pixel ratio
+            if (textRatio > 0.3) return 0.8; // High confidence
+            if (textRatio > 0.2) return 0.6; // Medium confidence
+            if (textRatio > 0.1) return 0.3; // Low confidence
+            return 0;
+            
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    detectRectangularEdges() {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 150;
+            canvas.height = 150;
+            
+            ctx.drawImage(this.webcam, 0, 0, 150, 150);
+            const imageData = ctx.getImageData(0, 0, 150, 150);
+            const data = imageData.data;
+            
+            // Simple edge detection using Sobel operator
+            let edgeStrength = 0;
+            const width = 150;
+            const height = 150;
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = (y * width + x) * 4;
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    const brightness = (r + g + b) / 3;
+                    
+                    // Simple edge detection
+                    const rightIdx = (y * width + (x + 1)) * 4;
+                    const rightBrightness = (data[rightIdx] + data[rightIdx + 1] + data[rightIdx + 2]) / 3;
+                    
+                    const downIdx = ((y + 1) * width + x) * 4;
+                    const downBrightness = (data[downIdx] + data[downIdx + 1] + data[downIdx + 2]) / 3;
+                    
+                    const edgeX = Math.abs(brightness - rightBrightness);
+                    const edgeY = Math.abs(brightness - downBrightness);
+                    const edgeMagnitude = Math.sqrt(edgeX * edgeX + edgeY * edgeY);
+                    
+                    if (edgeMagnitude > 30) {
+                        edgeStrength++;
+                    }
+                }
+            }
+            
+            const edgeRatio = edgeStrength / ((width - 2) * (height - 2));
+            
+            // Return confidence based on edge density (rectangular objects have many edges)
+            if (edgeRatio > 0.15) return 0.7; // High confidence
+            if (edgeRatio > 0.1) return 0.5;  // Medium confidence
+            if (edgeRatio > 0.05) return 0.3; // Low confidence
+            return 0;
+            
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    detectTextContrast() {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 100;
+            canvas.height = 100;
+            
+            ctx.drawImage(this.webcam, 0, 0, 100, 100);
+            const imageData = ctx.getImageData(0, 0, 100, 100);
+            const data = imageData.data;
+            
+            let minBrightness = 255;
+            let maxBrightness = 0;
+            let totalBrightness = 0;
+            let pixelCount = 0;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const brightness = (r + g + b) / 3;
+                
+                minBrightness = Math.min(minBrightness, brightness);
+                maxBrightness = Math.max(maxBrightness, brightness);
+                totalBrightness += brightness;
+                pixelCount++;
+            }
+            
+            const avgBrightness = totalBrightness / pixelCount;
+            const contrast = maxBrightness - minBrightness;
+            
+            // Good text contrast: not too dark, not too bright, good contrast range
+            let confidence = 0;
+            
+            if (avgBrightness > 80 && avgBrightness < 180) confidence += 0.3;
+            if (contrast > 100) confidence += 0.4;
+            if (contrast > 150) confidence += 0.3;
+            
+            return Math.min(1, confidence);
+            
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    updateConfidenceIndicator(confidence, className = '') {
+        const percentage = Math.round(confidence * 100);
+        this.confidenceFill.style.width = `${percentage}%`;
+        
+        // Show both book and no_book confidence if we have the data
+        if (this.teachableModel && this.lastPredictions) {
+            const bookConf = Math.round(this.lastPredictions.book * 100);
+            const noBookConf = Math.round(this.lastPredictions.no_book * 100);
+            this.confidenceText.textContent = `Book: ${bookConf}% | No Book: ${noBookConf}%`;
+        } else {
+            this.confidenceText.textContent = `${className} detected! (${percentage}% confidence)`;
+        }
+        
+        if (confidence >= 0.7) {
+            this.confidenceText.className = 'confidence-text high';
+            this.captureButton.disabled = false;
+        } else if (confidence >= 0.4) {
+            this.confidenceText.className = 'confidence-text medium';
+            this.captureButton.disabled = false;
+        } else {
+            this.confidenceText.className = 'confidence-text low';
+            this.captureButton.disabled = true;
+        }
     }
 
     async captureAndReadPageWithAI() {
@@ -574,6 +892,11 @@ class VoiceConversation {
         
         utterance.onerror = (event) => {
             console.error('Speech synthesis error:', event.error);
+            console.error('Error details:', {
+                error: event.error,
+                type: event.type,
+                text: utterance.text
+            });
             this.isSpeaking = false;
             this.updateStatus('Speech error: ' + event.error, 'error');
             this.updateUI(); // Re-enable text input
@@ -768,6 +1091,12 @@ class VoiceConversation {
         console.log('Manual microphone restart requested');
         this.autoRestartListening();
     }
+
+    // Test speech synthesis manually
+    testSpeech() {
+        console.log('Testing speech synthesis manually...');
+        this.speakText('This is a test of the speech synthesis system.');
+    }
 }
 
 // Initialize the application when the page loads
@@ -781,5 +1110,12 @@ document.addEventListener('visibilitychange', () => {
         window.speechSynthesis.pause();
     } else if (!document.hidden && window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
+    }
+});
+
+// Cleanup detection interval on page unload
+window.addEventListener('beforeunload', () => {
+    if (window.voiceConversation && window.voiceConversation.detectionInterval) {
+        clearInterval(window.voiceConversation.detectionInterval);
     }
 });

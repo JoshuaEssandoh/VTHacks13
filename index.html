@@ -8,6 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/livekit-client@latest/dist/livekit-client.umd.js"></script>
     <script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script src="livekit-integration.js"></script>
 </head>
 <body>
@@ -111,6 +113,12 @@
                     <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
                 </div>
                 <div class="camera-controls">
+                    <div class="confidence-indicator">
+                        <div class="confidence-bar">
+                            <div id="confidenceFill" class="confidence-fill"></div>
+                        </div>
+                        <div id="confidenceText" class="confidence-text">Loading AI model...</div>
+                    </div>
                     <button id="captureButton" class="capture-btn">
                         <i class="fas fa-book-open"></i>
                         Read This Page

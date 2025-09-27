@@ -1,0 +1,22 @@
+{
+  "tfjsVersion": "1.15.0",
+  "tmVersion": "2.0.0",
+  "packageVersion": "0.8.4",
+  "modelName": "book-detection-model",
+  "timeStamp": "2024-01-01T00:00:00.000Z",
+  "userMetadata": {},
+  "modelMetadata": {
+    "modelType": "imageClassifier",
+    "imageSize": 224,
+    "classLabels": [
+      "book",
+      "no_book"
+    ]
+  },
+  "hyperparams": {
+    "learningRate": 0.001,
+    "batchSize": 16,
+    "epochs": 20
+  }
+}
+

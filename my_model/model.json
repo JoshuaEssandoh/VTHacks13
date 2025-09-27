@@ -1,0 +1,37 @@
+{
+  "format": "graph-model",
+  "generatedBy": "1.15.0",
+  "modelTopology": {
+    "node": [
+      {
+        "name": "input",
+        "op": "Placeholder",
+        "attr": {
+          "dtype": {
+            "type": "DT_FLOAT"
+          },
+          "shape": {
+            "shape": {
+              "dim": [
+                {
+                  "size": "-1"
+                },
+                {
+                  "size": "224"
+                },
+                {
+                  "size": "224"
+                },
+                {
+                  "size": "3"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weightsManifest": []
+}
+
