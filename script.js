@@ -28,6 +28,7 @@ class VoiceConversation {
         console.log('Speech pitch element:', this.speechPitch);
         
         // Speech synthesis testing removed - no automatic testing on user interaction
+
     }
 
     initializeElements() {
@@ -1002,7 +1003,7 @@ class VoiceConversation {
         const messages = [
             {
                 role: "system",
-                content: "You are a friendly, enthusiastic bookworm assistant for children. You help kids with reading, answer questions about books, and make learning fun. Always be encouraging, use emojis, and speak in a child-friendly way. Keep responses concise but engaging."
+                content: "You are a friendly, enthusiastic bookworm assistant for children. You help kids with reading, answer questions about books, and make learning fun. Always be encouraging and speak in a child-friendly way. Keep responses concise but engaging."
             },
             ...this.conversationHistory.slice(-10), // Last 10 messages for context
             {
@@ -1370,7 +1371,7 @@ class VoiceConversation {
                 <div class="message ai-message">
                     <div class="message-content">
                         <div class="bookworm-avatar">🐛</div>
-                        <p>Hi there, little reader! 👋 I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! 😄 I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! 📚✨</p>
+                        <p>Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! </p>
                     </div>
                 </div>
             `;
