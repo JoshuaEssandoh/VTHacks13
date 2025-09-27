@@ -1557,6 +1557,41 @@ class VoiceConversation {
         }
     }
 
+    // Quick test function for immediate debugging
+    testQuickSpeech() {
+        console.log('=== QUICK SPEECH TEST ===');
+        console.log('Testing speech synthesis immediately...');
+        
+        if (!('speechSynthesis' in window)) {
+            console.error('Speech synthesis not supported');
+            return;
+        }
+        
+        const utterance = new SpeechSynthesisUtterance('Quick test of speech synthesis.');
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 0.9;
+        
+        utterance.onstart = () => {
+            console.log('✅ Quick test speech started successfully');
+        };
+        
+        utterance.onend = () => {
+            console.log('✅ Quick test speech ended successfully');
+        };
+        
+        utterance.onerror = (event) => {
+            console.error('❌ Quick test speech error:', event.error);
+        };
+        
+        try {
+            window.speechSynthesis.speak(utterance);
+            console.log('✅ Quick test speech synthesis called successfully');
+        } catch (error) {
+            console.error('❌ Error calling quick test speech synthesis:', error);
+        }
+    }
+
     // Test AI response generation
     testAIResponse() {
         console.log('Testing AI response generation...');

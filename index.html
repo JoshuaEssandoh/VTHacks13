@@ -355,7 +355,8 @@
                                 <button id="testSpeechBtn" style="padding: 8px 16px; margin-right: 10px;">Test Speech</button>
                                 <button id="testAIBtn" style="padding: 8px 16px; margin-right: 10px;">Test AI Response</button>
                                 <button id="testDirectBtn" style="padding: 8px 16px; margin-right: 10px;">Test Direct Speech</button>
-                                <button id="testFullAIBtn" style="padding: 8px 16px;">Test Full AI Flow</button>
+                                <button id="testFullAIBtn" style="padding: 8px 16px; margin-right: 10px;">Test Full AI Flow</button>
+                                <button id="testQuickBtn" style="padding: 8px 16px;">Quick Test</button>
                                 <small style="display: block; margin-top: 5px; color: #666;">
                                     Test speech synthesis and AI responses
                                 </small>
@@ -410,6 +411,7 @@
                 const testAIBtn = document.getElementById('testAIBtn');
                 const testDirectBtn = document.getElementById('testDirectBtn');
                 const testFullAIBtn = document.getElementById('testFullAIBtn');
+                const testQuickBtn = document.getElementById('testQuickBtn');
                 
                 testSpeechBtn.addEventListener('click', () => {
                     if (window.voiceConversation) {
@@ -438,6 +440,15 @@
                     if (window.voiceConversation) {
                         console.log('Testing full AI flow from settings...');
                         await window.voiceConversation.testFullAIResponse();
+                    } else {
+                        alert('VoiceConversation not initialized');
+                    }
+                });
+                
+                testQuickBtn.addEventListener('click', () => {
+                    if (window.voiceConversation) {
+                        console.log('Testing quick speech from settings...');
+                        window.voiceConversation.testQuickSpeech();
                     } else {
                         alert('VoiceConversation not initialized');
                     }
