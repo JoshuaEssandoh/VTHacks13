@@ -107,61 +107,11 @@ class VoiceConversation {
             const voices = this.synthesis.getVoices();
             this.voiceSelect.innerHTML = '<option value="default">Default Voice</option>';
             
-            // Preferred voices for more natural sound (in order of preference)
-            const preferredVoices = [
-                'Microsoft Zira Desktop - English (United States)',
-                'Microsoft David Desktop - English (United States)',
-                'Google US English',
-                'Samantha',
-                'Alex',
-                'Victoria',
-                'Daniel',
-                'Karen',
-                'Moira',
-                'Tessa'
-            ];
-            
-            // Add preferred voices first
-            let firstPreferredVoice = null;
-            preferredVoices.forEach(preferredName => {
-                const voice = voices.find(v => v.name.includes(preferredName));
-                if (voice) {
-                    const option = document.createElement('option');
-                    option.value = voices.indexOf(voice);
-                    option.textContent = `⭐ ${voice.name} (${voice.lang})`;
-                    option.style.fontWeight = 'bold';
-                    this.voiceSelect.appendChild(option);
-                    
-                    // Remember the first preferred voice for auto-selection
-                    if (!firstPreferredVoice) {
-                        firstPreferredVoice = voices.indexOf(voice);
-                    }
-                }
-            });
-            
-            // Auto-select the first preferred voice if available
-            if (firstPreferredVoice !== null) {
-                this.voiceSelect.value = firstPreferredVoice;
-            }
-            
-            // Add other English voices
             voices.forEach((voice, index) => {
-                if (voice.lang.startsWith('en') && !preferredVoices.some(p => voice.name.includes(p))) {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    this.voiceSelect.appendChild(option);
-                }
-            });
-            
-            // Add all other voices
-            voices.forEach((voice, index) => {
-                if (!voice.lang.startsWith('en')) {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    this.voiceSelect.appendChild(option);
-                }
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                this.voiceSelect.appendChild(option);
             });
         };
 
@@ -286,16 +236,6 @@ class VoiceConversation {
         
         utterance.rate = parseFloat(this.speechRate.value);
         utterance.pitch = parseFloat(this.speechPitch.value);
-        utterance.volume = 0.9; // Higher volume for clarity
-        
-        // Add natural pauses and emphasis
-        utterance.text = text
-            .replace(/\./g, '. ')  // Add pause after periods
-            .replace(/,/g, ', ')   // Add pause after commas
-            .replace(/!/g, '! ')   // Add pause after exclamations
-            .replace(/\?/g, '? ')  // Add pause after questions
-            .replace(/\s+/g, ' ')  // Clean up extra spaces
-            .trim();
         
         utterance.onstart = () => {
             this.isSpeaking = true;

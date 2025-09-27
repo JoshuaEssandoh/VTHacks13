@@ -9,8 +9,7 @@ class VoiceConversation {
         this.audioStream = null;
         
         this.initializeElements();
-        // Skip LiveKit initialization for now
-        // this.initializeLiveKit();
+        this.initializeLiveKit();
         this.initializeSpeechRecognition();
         this.initializeEventListeners();
         this.loadVoices();
@@ -35,10 +34,33 @@ class VoiceConversation {
         this.pitchValue = document.getElementById('pitchValue');
     }
 
-    // LiveKit initialization disabled for testing
     async initializeLiveKit() {
-        console.log('LiveKit initialization skipped for testing');
-        return;
+        try {
+            // Wait for LiveKit to be available
+            if (typeof LiveKit === 'undefined') {
+                console.warn('LiveKit not available, falling back to standard Web Speech API');
+                return;
+            }
+
+            this.livekit = new LiveKitIntegration();
+            
+            // Wait for LiveKit to connect
+            await new Promise((resolve) => {
+                const checkConnection = () => {
+                    if (this.livekit.isConnected) {
+                        resolve();
+                    } else {
+                        setTimeout(checkConnection, 100);
+                    }
+                };
+                checkConnection();
+            });
+
+            console.log('LiveKit integration initialized');
+        } catch (error) {
+            console.error('Failed to initialize LiveKit:', error);
+            this.updateStatus('LiveKit unavailable, using standard mode', 'warning');
+        }
     }
 
     initializeSpeechRecognition() {
@@ -107,61 +129,11 @@ class VoiceConversation {
             const voices = this.synthesis.getVoices();
             this.voiceSelect.innerHTML = '<option value="default">Default Voice</option>';
             
-            // Preferred voices for more natural sound (in order of preference)
-            const preferredVoices = [
-                'Microsoft Zira Desktop - English (United States)',
-                'Microsoft David Desktop - English (United States)',
-                'Google US English',
-                'Samantha',
-                'Alex',
-                'Victoria',
-                'Daniel',
-                'Karen',
-                'Moira',
-                'Tessa'
-            ];
-            
-            // Add preferred voices first
-            let firstPreferredVoice = null;
-            preferredVoices.forEach(preferredName => {
-                const voice = voices.find(v => v.name.includes(preferredName));
-                if (voice) {
-                    const option = document.createElement('option');
-                    option.value = voices.indexOf(voice);
-                    option.textContent = `⭐ ${voice.name} (${voice.lang})`;
-                    option.style.fontWeight = 'bold';
-                    this.voiceSelect.appendChild(option);
-                    
-                    // Remember the first preferred voice for auto-selection
-                    if (!firstPreferredVoice) {
-                        firstPreferredVoice = voices.indexOf(voice);
-                    }
-                }
-            });
-            
-            // Auto-select the first preferred voice if available
-            if (firstPreferredVoice !== null) {
-                this.voiceSelect.value = firstPreferredVoice;
-            }
-            
-            // Add other English voices
             voices.forEach((voice, index) => {
-                if (voice.lang.startsWith('en') && !preferredVoices.some(p => voice.name.includes(p))) {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    this.voiceSelect.appendChild(option);
-                }
-            });
-            
-            // Add all other voices
-            voices.forEach((voice, index) => {
-                if (!voice.lang.startsWith('en')) {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    this.voiceSelect.appendChild(option);
-                }
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                this.voiceSelect.appendChild(option);
             });
         };
 
@@ -185,19 +157,18 @@ class VoiceConversation {
     async toggleListening() {
         if (this.isListening) {
             this.recognition.stop();
-            // Skip LiveKit for now
-            // if (this.livekit) {
-            //     await this.livekit.stopAudioStreaming();
-            // }
+            if (this.livekit) {
+                await this.livekit.stopAudioStreaming();
+            }
         } else {
-            // Skip LiveKit for now
-            // if (this.livekit && this.livekit.isConnected) {
-            //     const streamingStarted = await this.livekit.startAudioStreaming();
-            //     if (!streamingStarted) {
-            //         this.updateStatus('Failed to start audio streaming', 'error');
-            //         return;
-            //     }
-            // }
+            // Start LiveKit audio streaming if available
+            if (this.livekit && this.livekit.isConnected) {
+                const streamingStarted = await this.livekit.startAudioStreaming();
+                if (!streamingStarted) {
+                    this.updateStatus('Failed to start audio streaming', 'error');
+                    return;
+                }
+            }
             
             this.recognition.start();
         }
@@ -217,8 +188,6 @@ class VoiceConversation {
         try {
             this.updateStatus('AI is thinking...', 'thinking');
             
-            console.log('Sending request to API:', { message: userInput });
-            
             // Call OpenAI API through our backend
             const response = await fetch('/api/ai-chat', {
                 method: 'POST',
@@ -231,8 +200,6 @@ class VoiceConversation {
                 })
             });
 
-            console.log('API Response status:', response.status);
-
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('API Error:', errorData);
@@ -240,7 +207,6 @@ class VoiceConversation {
             }
 
             const data = await response.json();
-            console.log('API Response data:', data);
             const aiResponse = data.response;
             
             this.addMessage(aiResponse, 'ai');
@@ -270,6 +236,9 @@ class VoiceConversation {
         }
     }
 
+    // AI responses are now handled by OpenAI API through generateAIResponse()
+    // This method has been replaced with API integration for better intelligence
+
     speakText(text) {
         if (this.isSpeaking) {
             this.synthesis.cancel();
@@ -286,20 +255,15 @@ class VoiceConversation {
         
         utterance.rate = parseFloat(this.speechRate.value);
         utterance.pitch = parseFloat(this.speechPitch.value);
-        utterance.volume = 0.9; // Higher volume for clarity
-        
-        // Add natural pauses and emphasis
-        utterance.text = text
-            .replace(/\./g, '. ')  // Add pause after periods
-            .replace(/,/g, ', ')   // Add pause after commas
-            .replace(/!/g, '! ')   // Add pause after exclamations
-            .replace(/\?/g, '? ')  // Add pause after questions
-            .replace(/\s+/g, ' ')  // Clean up extra spaces
-            .trim();
         
         utterance.onstart = () => {
             this.isSpeaking = true;
             this.updateStatus('Speaking...', 'speaking');
+            
+            // If LiveKit is available, we could stream the audio here
+            if (this.livekit && this.livekit.isConnected) {
+                console.log('AI speaking - LiveKit audio streaming active');
+            }
         };
         
         utterance.onend = () => {
@@ -360,7 +324,7 @@ class VoiceConversation {
     updateUI() {
         this.voiceButton.classList.toggle('listening', this.isListening);
         this.voiceButton.disabled = this.isSpeaking;
-        // Only disable text input when listening, not when speaking
+        // FIXED: Only disable text input when listening, not when speaking
         this.textInput.disabled = this.isListening;
     }
 
@@ -374,7 +338,7 @@ class VoiceConversation {
             <div class="message ai-message">
                 <div class="message-content">
                     <i class="fas fa-robot"></i>
-                    <p>Hello! I'm your AI assistant. Click the microphone button to start speaking, or type your message below. LiveKit is disabled for testing.</p>
+                    <p>Hello! I'm your AI assistant with LiveKit integration. Click the microphone button to start speaking, or type your message below. Real-time audio streaming is now enabled!</p>
                 </div>
             </div>
         `;
@@ -402,5 +366,12 @@ document.addEventListener('visibilitychange', () => {
         window.speechSynthesis.pause();
     } else if (!document.hidden && window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
+    }
+});
+
+// Cleanup LiveKit connection on page unload
+window.addEventListener('beforeunload', async () => {
+    if (window.voiceConversation && window.voiceConversation.livekit) {
+        await window.voiceConversation.livekit.disconnect();
     }
 });

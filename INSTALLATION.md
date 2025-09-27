@@ -14,11 +14,11 @@ npm install
 npm install -g livekit-server
 ```
 
-### **Step 3: Get Gemini API Key**
-1. Go to: https://makersuite.google.com/app/apikey
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy your API key
+### **Step 3: Get OpenAI API Key**
+1. Go to: https://platform.openai.com/api-keys
+2. Sign in with your OpenAI account
+3. Click "Create new secret key"
+4. Copy your API key (starts with sk-)
 
 ### **Step 4: Create Environment File**
 ```bash
@@ -26,7 +26,7 @@ npm install -g livekit-server
 cp env.example .env
 
 # Edit .env and add your API key
-# Replace 'your_gemini_api_key_here' with your actual key
+# Replace 'your_openai_api_key_here' with your actual key
 ```
 
 ## 🔧 **Complete Installation Commands**
@@ -43,7 +43,7 @@ npm install -g livekit-server
 # 3. Create .env file
 cp env.example .env
 
-# 4. Edit .env file (add your Gemini API key)
+# 4. Edit .env file (add your OpenAI API key)
 # Use any text editor to edit .env
 
 # 5. Start LiveKit server (Terminal 1)
@@ -62,11 +62,11 @@ npm run server
 ```bash
 curl http://localhost:3000/api/health
 ```
-Should return: `{"status":"ok","gemini_configured":true}`
+Should return: `{"status":"ok","openai_configured":true}`
 
 ### **Test 2: API Key Verification**
 ```bash
-curl http://localhost:3000/api/verify-gemini
+curl http://localhost:3000/api/verify-openai
 ```
 Should return: `{"status":"success","api_key_valid":true}`
 
@@ -99,17 +99,18 @@ npm install -g livekit-server
 npx livekit-server --dev
 ```
 
-### **If Gemini API fails:**
+### **If OpenAI API fails:**
 1. Check your API key in .env file
-2. Verify key format: should start with letters/numbers
-3. Test at: http://localhost:3000/api/verify-gemini
+2. Verify key format: should start with 'sk-'
+3. Test at: http://localhost:3000/api/verify-openai
+4. Check billing at: https://platform.openai.com/account/billing
 
 ## 📦 **What Gets Installed**
 
 ### **Dependencies:**
 - `livekit-client` - LiveKit WebRTC client
 - `livekit-server-sdk` - LiveKit server SDK
-- `@google/generative-ai` - Gemini AI integration
+- `openai` - OpenAI API integration
 - `dotenv` - Environment variable loader
 - `express` - Web server framework
 
@@ -128,7 +129,7 @@ VT Hacks 13/
 ├── .gitignore             # Git ignore rules
 ├── env.example            # Template for .env
 ├── package.json           # Dependencies
-├── server.js              # Express server with Gemini
+├── server.js              # Express server with OpenAI
 ├── script.js              # Frontend JavaScript
 ├── livekit-integration.js # LiveKit integration
 ├── index.html             # Main HTML file
@@ -142,7 +143,7 @@ VT Hacks 13/
 You'll know everything is working when you see:
 
 1. **Server starts without errors**
-2. **"✅ Gemini API key is configured"** message
+2. **"✅ OpenAI API key is configured"** message
 3. **Voice conversation works** (speak and get AI responses)
 4. **LiveKit connection status** shows "Connected"
 
@@ -159,7 +160,7 @@ If you encounter issues:
 
 Once everything is installed and configured, you'll have a fully functional AI voice conversation system with:
 - 🎤 Speech-to-text
-- 🧠 Gemini AI responses  
+- 🧠 OpenAI GPT responses  
 - 🔊 Text-to-speech
 - 🌐 Real-time audio streaming
 - 💬 Conversation memory
