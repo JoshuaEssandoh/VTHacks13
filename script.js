@@ -925,7 +925,8 @@ class VoiceConversation {
         } else if (sender === 'system') {
             icon.className = 'fas fa-info-circle';
         } else {
-            icon.className = 'fas fa-robot';
+            icon.className = 'bookworm-avatar';
+            icon.innerHTML = '🐛';
         }
         
         const textP = document.createElement('p');
@@ -973,8 +974,8 @@ class VoiceConversation {
         this.conversationArea.innerHTML = `
             <div class="message ai-message">
                 <div class="message-content">
-                    <i class="fas fa-robot"></i>
-                    <p>Hello! I'm your reading helper! The microphone is active and listening! You can say "read this page", "scan the book", or "what do you see" to have me analyze book pages. Just start speaking!</p>
+                    <div class="bookworm-avatar">🐛</div>
+                    <p>Hi there, little reader! 👋 I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! 😄 I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! 📚✨</p>
                 </div>
             </div>
         `;

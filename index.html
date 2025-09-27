@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Book Reading Assistant</title>
+    <title>📚 StoryVue - Your Magical Reading Companion</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Fredoka+One&family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/livekit-client@latest/dist/livekit-client.umd.js"></script>
     <script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
@@ -88,25 +90,36 @@
             window.location.href = '/login.html';
         }
 
-        // Check authentication on page load
-        checkAuthentication();
+        // Skip authentication check for demo
+        // checkAuthentication();
     </script>
 
     <div class="container">
         <header class="header">
-            <h1><i class="fas fa-microphone"></i> AI Book Reading Assistant</h1>
-            <p>Hold your book up to the camera and I'll read it to you!</p>
+            <div class="header-content">
+                <div class="title-section">
+                    <img src="assets/wormy.png" alt="StoryVue Bookworm Mascot" class="header-mascot">
+                    <h1 class="story-vue-title">StoryVue</h1>
+                </div>
+                <div class="books-decoration">
+                    <span class="book-emoji">📖</span>
+                    <span class="book-emoji">📚</span>
+                    <span class="book-emoji">📖</span>
+                </div>
+            </div>
+            <p class="subtitle">Your magical reading companion with a friendly bookworm guide!</p>
+            <p class="tagline">Unlock the magic in every word!</p>
             <div class="connection-status" id="connectionStatus">
                 <i class="fas fa-circle"></i>
-                <span id="connectionText">Connecting to LiveKit...</span>
+                <span id="connectionText">Getting ready to read...</span>
             </div>
         </header>
 
         <div class="camera-section">
             <div class="camera-container">
                 <div class="camera-header">
-                    <h2><i class="fas fa-camera"></i> Book Reader</h2>
-                    <p>Hold your book page up to the camera</p>
+                    <h2>🔍 Magic Reading Window</h2>
+                    <p>Show me your book page and I'll read it to you! 📖✨</p>
                 </div>
                 <div class="camera-display">
                     <video id="webcam" width="640" height="480" autoplay></video>
@@ -132,8 +145,8 @@
             <div class="conversation-area" id="conversationArea">
                 <div class="message ai-message">
                     <div class="message-content">
-                        <i class="fas fa-robot"></i>
-                        <p>Hello! I'm your AI reading assistant. The microphone is now active and listening! You can say things like "read this page", "scan the book", or "what do you see" to have me analyze book pages. Just start speaking!</p>
+                        <div class="bookworm-avatar">🐛</div>
+                        <p>Hi there, little reader! 👋 I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! 😄 I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! 📚✨</p>
                     </div>
                 </div>
             </div>
@@ -143,7 +156,7 @@
             <div class="input-container">
                 <textarea 
                     id="textInput" 
-                    placeholder="Type your message here..." 
+                    placeholder="Type your message here or talk to me! 🎤✨" 
                     rows="3"
                     disabled
                 ></textarea>

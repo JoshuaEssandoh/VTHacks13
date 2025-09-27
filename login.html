@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Voice Chat - Login</title>
+    <title>📚 StoryVue - Login</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Fredoka+One&family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         .login-container {
@@ -13,9 +14,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #151931 0%, #817FE7 50%, #151931 100%);
+            background: linear-gradient(135deg, #b3d9ff 0%, #cce6ff 25%, #e6f2ff 50%, #f0f5ff 75%, #b3e6ff 100%);
             position: relative;
             overflow: hidden;
+            font-family: 'Comic Neue', sans-serif;
         }
 
         .login-container::before {
@@ -26,9 +28,9 @@
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(0, 255, 204, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(88, 254, 248, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(129, 127, 231, 0.1) 0%, transparent 50%);
+                radial-gradient(circle at 20% 80%, rgba(182, 193, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(218, 185, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(192, 203, 255, 0.3) 0%, transparent 50%);
             animation: float 6s ease-in-out infinite;
         }
 
@@ -38,16 +40,16 @@
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 40px;
+            border-radius: 30px;
+            padding: 50px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 255, 204, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            border: 3px solid rgba(182, 193, 255, 0.5);
             position: relative;
             z-index: 1;
-            max-width: 400px;
+            max-width: 450px;
             width: 90%;
             animation: slideInUp 0.8s ease-out;
         }
@@ -63,44 +65,197 @@
             }
         }
 
-        .login-header h1 {
+        .mascot-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .bookworm-mascot {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: bounce 2s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .bookworm-image {
+            width: 80px;
+            height: 67px;
+            animation: wiggle 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            transition: transform 0.3s ease;
+        }
+
+        .bookworm-image:hover {
+            transform: scale(1.1);
+        }
+
+        .magic-wand {
             font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #00FFCC, #58FEF8);
+            animation: sparkle 1.5s ease-in-out infinite;
+            transform: rotate(-15deg);
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+        }
+
+        .book-holder {
+            font-size: 3rem;
+            animation: float 2.5s ease-in-out infinite;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { 
+                transform: rotate(-15deg) scale(1);
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+            }
+            50% { 
+                transform: rotate(-15deg) scale(1.2);
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+            }
+        }
+
+        .story-vue-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e, #ffb3b3, #ffd1d1);
+            background-size: 300% 300%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+            animation: gradientShift 4s ease-in-out infinite;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.1);
+            position: relative;
+            display: block;
+            text-align: center;
+            width: 100%;
+            /* Accessibility improvements */
+            color: #ff6b6b; /* Fallback color for browsers that don't support background-clip */
+            line-height: 1.2;
+            letter-spacing: 2px;
         }
 
-        .login-header p {
-            color: rgba(255, 255, 255, 0.8);
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .books-decoration {
+            display: flex;
+            gap: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .book-emoji {
+            font-size: 2rem;
+            animation: wiggle 2s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .book-emoji:nth-child(1) { animation-delay: 0s; }
+        .book-emoji:nth-child(2) { animation-delay: 0.5s; }
+        .book-emoji:nth-child(3) { animation-delay: 1s; }
+
+        .subtitle {
+            color: #6c5ce7;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .tagline {
+            color: #ff6b6b;
+            font-size: 1.1rem;
             margin-bottom: 30px;
-            font-size: 1.1rem;
+            font-weight: 600;
+            font-style: italic;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            animation: fadeInUp 1.2s ease-out;
+            letter-spacing: 1px;
         }
 
-        .google-signin-btn {
-            background: linear-gradient(135deg, #817FE7, #00FFCC);
-            border: none;
-            border-radius: 15px;
-            padding: 15px 30px;
-            color: #FFFFFF;
-            font-size: 1.1rem;
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #6c5ce7;
             font-weight: 600;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: rgba(182, 193, 255, 0.5);
+        }
+
+        .divider span {
+            padding: 0 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Comic Neue', sans-serif;
+        }
+
+        .bypass-btn {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border: none;
+            border-radius: 20px;
+            padding: 18px 35px;
+            color: #6c5ce7;
+            font-size: 1.2rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(129, 127, 231, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+            width: 100%;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            width: 100%;
-            margin-bottom: 20px;
+            font-family: 'Comic Neue', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
             position: relative;
             overflow: hidden;
         }
 
-        .google-signin-btn::before {
+        .bypass-btn::before {
             content: '';
             position: absolute;
             top: 0;
@@ -111,56 +266,13 @@
             transition: left 0.5s;
         }
 
-        .google-signin-btn:hover::before {
-            left: 100%;
-        }
-
-        .google-signin-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0, 255, 204, 0.4);
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 20px 0;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .divider span {
-            padding: 0 15px;
-        }
-
-        .bypass-btn {
-            background: linear-gradient(135deg, #00FFCC, #58FEF8);
-            border: none;
-            border-radius: 15px;
-            padding: 15px 30px;
-            color: #151931;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 255, 204, 0.3);
-            width: 100%;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
         .bypass-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(88, 254, 248, 0.4);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.4);
+        }
+
+        .bypass-btn:hover::before {
+            left: 100%;
         }
 
         .login-form {
@@ -168,79 +280,91 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: left;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #FFFFFF;
-            font-weight: 500;
-            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: #6c5ce7;
+            font-weight: 700;
+            font-size: 1.1rem;
+            font-family: 'Comic Neue', sans-serif;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid rgba(88, 254, 248, 0.3);
-            border-radius: 10px;
-            background: rgba(21, 25, 49, 0.8);
-            color: #FFFFFF;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
+            padding: 15px 20px;
+            border: 3px solid rgba(182, 193, 255, 0.5);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #4a4a4a;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-family: 'Comic Neue', sans-serif;
+            font-weight: 500;
             box-sizing: border-box;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #00FFCC;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 5px rgba(255, 107, 107, 0.2);
+            background: white;
+            transform: scale(1.02);
         }
 
         .form-group input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: #999;
         }
 
         .login-submit-btn {
-            background: linear-gradient(135deg, #817FE7, #00FFCC);
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
             border: none;
-            border-radius: 15px;
-            padding: 15px 30px;
-            color: #FFFFFF;
-            font-size: 1.1rem;
-            font-weight: 600;
+            border-radius: 20px;
+            padding: 18px 35px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(129, 127, 231, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
+            font-family: 'Comic Neue', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
 
         .login-submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0, 255, 204, 0.4);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
         }
 
-        .google-signin-btn:active {
-            transform: translateY(0);
+        .login-submit-btn:hover::before {
+            left: 100%;
         }
 
-        .google-icon {
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #4285f4;
-        }
 
         .features {
             margin-top: 30px;
@@ -252,7 +376,7 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 15px;
-            color: rgba(255, 255, 255, 0.8);
+            color: #6c5ce7;
             font-size: 0.95rem;
         }
 
@@ -311,8 +435,19 @@
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1><i class="fas fa-robot"></i> AI Voice Chat</h1>
-                <p>Sign in to start your intelligent conversation</p>
+                <div class="header-content">
+                    <div class="title-section">
+                        <img src="assets/wormy.png" alt="StoryVue Bookworm Mascot" class="header-mascot">
+                        <h1 class="story-vue-title">StoryVue</h1>
+                    </div>
+                    <div class="books-decoration">
+                        <span class="book-emoji">📖</span>
+                        <span class="book-emoji">📚</span>
+                        <span class="book-emoji">📖</span>
+                    </div>
+                </div>
+                <p class="subtitle">Welcome to your magical reading adventure! 🌟</p>
+                <p class="tagline">Unlock the magic in every word!</p>
             </div>
 
             <form id="loginForm" class="login-form">
@@ -326,21 +461,19 @@
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 </div>
 
-                <button type="submit" class="login-submit-btn">
+                <button type="submit" class="login-submit-btn" onclick="handleLogin()">
                     <i class="fas fa-sign-in-alt"></i>
-                    Sign In
+                    Let's Start Reading! 📚
                 </button>
             </form>
 
             <div class="divider">
-                <span>OR</span>
+                <span>or</span>
             </div>
 
-            <button id="googleSignInBtn" class="google-signin-btn">
-                <div class="google-icon">
-                    <i class="fab fa-google"></i>
-                </div>
-                Continue with Google
+            <button id="bypassBtn" class="bypass-btn" onclick="handleBypass()">
+                <i class="fas fa-rocket"></i>
+                Explore without Signing In 🚀
             </button>
 
             <div id="loading" class="loading">
@@ -491,22 +624,6 @@
             }, 1000);
         }
 
-        // Handle form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            if (!username || !password) {
-                showError('Please fill in all fields');
-                return;
-            }
-            
-            // For this demo, any username/password combination works
-            // In a real app, you'd validate against a database
-            handleFormAuth(username, password);
-        });
 
         // Check if user is already authenticated
         function checkAuthStatus() {
@@ -534,9 +651,66 @@
             }
         }
 
+        // Global functions for onclick handlers
+        function handleLogin() {
+            console.log('handleLogin called');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            console.log('Redirecting to main page...');
+            window.location.href = '/';
+        }
+        
+        function handleBypass() {
+            console.log('handleBypass called');
+            window.location.href = '/';
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async () => {
-            checkAuthStatus();
+            console.log('DOM loaded, setting up event listeners...');
+            
+            // Test if elements exist
+            const form = document.getElementById('loginForm');
+            const bypassBtn = document.getElementById('bypassBtn');
+            console.log('Form element:', form);
+            console.log('Bypass button element:', bypassBtn);
+            
+            // Skip auth check for demo
+            // checkAuthStatus();
+            
+            // Handle form submission
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                console.log('Form submitted!');
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                
+                console.log('Username:', username, 'Password:', password);
+                
+                if (!username || !password) {
+                    console.log('Missing fields');
+                    showError('Please fill in all fields');
+                    return;
+                }
+                
+                console.log('Redirecting to main page...');
+                // Just redirect to the main page
+                window.location.href = '/';
+            });
+
+            // Handle bypass button click
+            document.getElementById('bypassBtn').addEventListener('click', function() {
+                console.log('Bypass button clicked!');
+                // Just redirect to the main page
+                window.location.href = '/';
+            });
             
             // Get Google Client ID from server
             try {
