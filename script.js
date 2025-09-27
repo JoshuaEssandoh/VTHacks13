@@ -467,7 +467,16 @@ class VoiceConversation {
             this.conversationHistory.push({ role: 'assistant', content: aiResponse });
             
             // Speak the response
+            console.log('About to speak AI response:', aiResponse);
             this.speakText(aiResponse);
+            
+            // Fallback: ensure microphone restarts even if speech synthesis fails
+            setTimeout(() => {
+                if (!this.isListening && !this.isSpeaking) {
+                    console.log('Fallback: restarting microphone after AI response');
+                    this.autoRestartListening();
+                }
+            }, 3000); // 3 second fallback
             
         } catch (error) {
             console.error('Error generating AI response:', error);
@@ -486,7 +495,16 @@ class VoiceConversation {
             }
             
             this.addMessage(errorMessage, 'ai');
+            console.log('About to speak error message:', errorMessage);
             this.speakText(errorMessage);
+            
+            // Fallback: ensure microphone restarts even if speech synthesis fails
+            setTimeout(() => {
+                if (!this.isListening && !this.isSpeaking) {
+                    console.log('Fallback: restarting microphone after error response');
+                    this.autoRestartListening();
+                }
+            }, 3000); // 3 second fallback
         }
     }
 
@@ -544,12 +562,13 @@ class VoiceConversation {
         };
         
         utterance.onend = () => {
-            console.log('Speech ended');
+            console.log('Speech ended - onend event fired');
             this.isSpeaking = false;
             this.updateStatus('Ready to listen', 'ready');
             this.updateUI(); // Re-enable text input
             
             // Automatically restart voice recognition after speaking
+            console.log('Calling autoRestartListening from onend event');
             this.autoRestartListening();
         };
         
@@ -558,6 +577,9 @@ class VoiceConversation {
             this.isSpeaking = false;
             this.updateStatus('Speech error: ' + event.error, 'error');
             this.updateUI(); // Re-enable text input
+            
+            // Still try to restart listening even if speech failed
+            this.autoRestartListening();
         };
         
         console.log('Starting speech synthesis...');
@@ -708,6 +730,43 @@ class VoiceConversation {
         
         // For voice commands, use AI analysis
         await this.captureAndReadPageWithAI();
+    }
+
+    autoRestartListening() {
+        console.log('Auto-restart listening called. Current state:', {
+            isListening: this.isListening,
+            isSpeaking: this.isSpeaking,
+            recognition: !!this.recognition
+        });
+        
+        // Wait a moment after speaking ends before restarting listening
+        setTimeout(() => {
+            console.log('Attempting auto-restart. State check:', {
+                isListening: this.isListening,
+                isSpeaking: this.isSpeaking,
+                recognition: !!this.recognition
+            });
+            
+            if (this.recognition && !this.isListening && !this.isSpeaking) {
+                try {
+                    console.log('Auto-restarting microphone...');
+                    this.recognition.start();
+                    this.updateStatus('Microphone is active - start speaking!', 'listening');
+                    console.log('Microphone auto-restart successful');
+                } catch (error) {
+                    console.error('Failed to auto-restart microphone:', error);
+                    this.updateStatus('Click microphone button to restart', 'error');
+                }
+            } else {
+                console.log('Auto-restart skipped due to current state');
+            }
+        }, 500); // Short delay to ensure speech has fully ended
+    }
+
+    // Manual restart method for debugging
+    manualRestartMicrophone() {
+        console.log('Manual microphone restart requested');
+        this.autoRestartListening();
     }
 }
 
