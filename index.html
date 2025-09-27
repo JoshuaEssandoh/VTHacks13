@@ -156,13 +156,16 @@
                             </div>
                         </div>
                         
-                        <div class="input-area">
-                            <input type="text" id="messageInput" placeholder="Ask me about your book..." />
-                            <button class="voice-btn" id="voiceButton" title="Voice Input">
-                                <i class="fas fa-microphone"></i>
-                            </button>
-                            <button class="send-btn" id="sendBtn">Send</button>
-                        </div>
+                <div class="input-area">
+                    <input type="text" id="messageInput" placeholder="Ask me about your book..." />
+                    <button class="voice-btn" id="voiceButton" title="Voice Input">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="send-btn" id="sendBtn">Send</button>
+                    <button class="test-speech-btn" id="testSpeechMainBtn" title="Test Speech" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; margin-left: 5px;">
+                        🎤
+                    </button>
+                </div>
                     </div>
                 </div>
             </div>
@@ -198,6 +201,19 @@
                 // Initialize the VoiceConversation class
                 window.voiceConversation = new VoiceConversation();
                 console.log('VoiceConversation initialized successfully');
+                
+                // Add test button event listener
+                const testSpeechMainBtn = document.getElementById('testSpeechMainBtn');
+                if (testSpeechMainBtn) {
+                    testSpeechMainBtn.addEventListener('click', () => {
+                        console.log('Test speech button clicked');
+                        if (window.voiceConversation) {
+                            window.voiceConversation.testSimpleSpeech();
+                        } else {
+                            alert('VoiceConversation not initialized');
+                        }
+                    });
+                }
                 
                 // Test basic functionality
                 setTimeout(() => {
@@ -353,7 +369,8 @@
                                 <label>Speech Test:</label>
                                 <button id="testSpeechBtn" style="padding: 8px 16px; margin-right: 10px;">Test Speech</button>
                                 <button id="testAIBtn" style="padding: 8px 16px; margin-right: 10px;">Test AI Response</button>
-                                <button id="testDirectBtn" style="padding: 8px 16px;">Test Direct Speech</button>
+                                <button id="testDirectBtn" style="padding: 8px 16px; margin-right: 10px;">Test Direct Speech</button>
+                                <button id="testFullAIBtn" style="padding: 8px 16px;">Test Full AI Flow</button>
                                 <small style="display: block; margin-top: 5px; color: #666;">
                                     Test speech synthesis and AI responses
                                 </small>
@@ -407,6 +424,7 @@
                 const testSpeechBtn = document.getElementById('testSpeechBtn');
                 const testAIBtn = document.getElementById('testAIBtn');
                 const testDirectBtn = document.getElementById('testDirectBtn');
+                const testFullAIBtn = document.getElementById('testFullAIBtn');
                 
                 testSpeechBtn.addEventListener('click', () => {
                     if (window.voiceConversation) {
@@ -429,6 +447,15 @@
                 testDirectBtn.addEventListener('click', () => {
                     console.log('Testing direct speech synthesis...');
                     window.testDirectSpeech();
+                });
+                
+                testFullAIBtn.addEventListener('click', async () => {
+                    if (window.voiceConversation) {
+                        console.log('Testing full AI flow from settings...');
+                        await window.voiceConversation.testFullAIResponse();
+                    } else {
+                        alert('VoiceConversation not initialized');
+                    }
                 });
             }
         }

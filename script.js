@@ -32,6 +32,12 @@ class VoiceConversation {
             console.log('User clicked, testing speech synthesis...');
             this.testSimpleSpeech();
         }, { once: true });
+        
+        // Also test on any user interaction
+        document.addEventListener('keydown', () => {
+            console.log('User pressed key, testing speech synthesis...');
+            this.testSimpleSpeech();
+        }, { once: true });
     }
 
     initializeElements() {
@@ -862,8 +868,17 @@ class VoiceConversation {
             
             // Speak the response
             console.log('About to speak AI response:', aiResponse);
-            this.speakText(aiResponse);
-            console.log('Speech synthesis called');
+            console.log('AI response length:', aiResponse.length);
+            console.log('AI response type:', typeof aiResponse);
+            
+            // Ensure we have a valid response to speak
+            if (aiResponse && aiResponse.trim()) {
+                console.log('Calling speakText with AI response...');
+                this.speakText(aiResponse.trim());
+                console.log('Speech synthesis called successfully');
+            } else {
+                console.warn('AI response is empty or invalid, skipping speech synthesis');
+            }
             
             // Fallback: ensure microphone restarts even if speech synthesis fails
             setTimeout(() => {
@@ -1036,12 +1051,23 @@ class VoiceConversation {
     }
 
     speakText(text) {
-        console.log('Attempting to speak text:', text);
+        console.log('=== SPEAKTEXT CALLED ===');
+        console.log('Text to speak:', text);
+        console.log('Text type:', typeof text);
+        console.log('Text length:', text ? text.length : 'undefined');
+        console.log('Current speaking status:', this.isSpeaking);
+        console.log('Speech synthesis available:', 'speechSynthesis' in window);
         
         // Check if speech synthesis is supported
         if (!('speechSynthesis' in window)) {
             console.error('Speech synthesis not supported');
             this.updateStatus('Speech synthesis not supported', 'error');
+            return;
+        }
+        
+        // Check if text is valid
+        if (!text || typeof text !== 'string' || !text.trim()) {
+            console.warn('Invalid text provided to speakText:', text);
             return;
         }
         
@@ -1387,26 +1413,59 @@ class VoiceConversation {
 
     // Simple test function for debugging
     testSimpleSpeech() {
-        console.log('Testing simple speech...');
+        console.log('=== SIMPLE SPEECH TEST ===');
         console.log('Speech synthesis object:', this.synthesis);
         console.log('Window speech synthesis:', window.speechSynthesis);
         console.log('Are they the same?', this.synthesis === window.speechSynthesis);
+        console.log('Speech synthesis available:', 'speechSynthesis' in window);
+        console.log('Currently speaking:', speechSynthesis.speaking);
+        console.log('Pending:', speechSynthesis.pending);
         
-        const utterance = new SpeechSynthesisUtterance('Hello, this is a simple test.');
+        // Cancel any existing speech
+        if (speechSynthesis.speaking) {
+            console.log('Canceling existing speech...');
+            speechSynthesis.cancel();
+        }
+        
+        const utterance = new SpeechSynthesisUtterance('Hello, this is a simple test of speech synthesis.');
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
         utterance.volume = 1.0;
         
-        utterance.onstart = () => console.log('Simple speech started');
-        utterance.onend = () => console.log('Simple speech ended');
-        utterance.onerror = (event) => console.error('Simple speech error:', event.error);
+        utterance.onstart = () => {
+            console.log('✅ Simple speech started successfully!');
+            alert('Speech started! Check your speakers.');
+        };
+        
+        utterance.onend = () => {
+            console.log('✅ Simple speech ended successfully!');
+        };
+        
+        utterance.onerror = (event) => {
+            console.error('❌ Simple speech error:', event.error);
+            console.error('Error details:', {
+                error: event.error,
+                type: event.type,
+                charIndex: event.charIndex,
+                charLength: event.charLength
+            });
+            alert('Speech error: ' + event.error);
+        };
         
         console.log('About to call speechSynthesis.speak...');
+        console.log('Utterance text:', utterance.text);
+        console.log('Utterance settings:', {
+            rate: utterance.rate,
+            pitch: utterance.pitch,
+            volume: utterance.volume
+        });
+        
         try {
-            this.synthesis.speak(utterance);
+            speechSynthesis.speak(utterance);
             console.log('speechSynthesis.speak called successfully');
         } catch (error) {
-            console.error('Error calling speechSynthesis.speak:', error);
+            console.error('❌ Error calling speechSynthesis.speak:', error);
+            alert('Error calling speech synthesis: ' + error.message);
         }
     }
 
@@ -1424,6 +1483,22 @@ class VoiceConversation {
         
         // Test speech
         this.speakText('This is a test of the AI response system.');
+    }
+    
+    // Test full AI response flow with speech
+    async testFullAIResponse() {
+        console.log('=== TESTING FULL AI RESPONSE FLOW ===');
+        try {
+            const testInput = 'Hello, can you help me with my book?';
+            console.log('Test input:', testInput);
+            
+            // Simulate the full flow
+            this.addMessage(testInput, 'user');
+            await this.generateAIResponse(testInput);
+            
+        } catch (error) {
+            console.error('Error in full AI response test:', error);
+        }
     }
 }
 
@@ -1497,6 +1572,15 @@ window.testAPIKey = async () => {
     } catch (error) {
         console.error('API key test failed:', error);
         alert('API key test failed: ' + error.message);
+    }
+};
+
+window.testFullAI = async () => {
+    if (window.voiceConversation) {
+        console.log('Testing full AI response flow...');
+        await window.voiceConversation.testFullAIResponse();
+    } else {
+        console.error('VoiceConversation not initialized');
     }
 };
 
