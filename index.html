@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Conversation with LiveKit</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/livekit-client@latest/dist/livekit-client.umd.js"></script>
+    <script src="livekit-integration.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-microphone"></i> AI Voice Conversation</h1>
+            <p>Speak naturally and have AI-powered conversations with LiveKit</p>
+            <div class="connection-status" id="connectionStatus">
+                <i class="fas fa-circle"></i>
+                <span id="connectionText">Connecting to LiveKit...</span>
+            </div>
+        </header>
+
+        <div class="conversation-container">
+            <div class="conversation-area" id="conversationArea">
+                <div class="message ai-message">
+                    <div class="message-content">
+                        <i class="fas fa-robot"></i>
+                        <p>Hello! I'm your AI assistant with LiveKit integration. Click the microphone button to start speaking, or type your message below. Real-time audio streaming is now enabled!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-container">
+                <textarea 
+                    id="textInput" 
+                    placeholder="Type your message here..." 
+                    rows="3"
+                    disabled
+                ></textarea>
+                <div class="button-group">
+                    <button id="voiceButton" class="voice-btn" title="Click to speak">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button id="sendButton" class="send-btn" title="Send message" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">
+                    <i class="fas fa-circle"></i>
+                    <span id="statusText">Ready to listen</span>
+                </div>
+                <div class="controls">
+                    <button id="clearButton" class="control-btn" title="Clear conversation">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button id="settingsButton" class="control-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="close-btn" id="closeSettings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="voiceSelect">Voice:</label>
+                    <select id="voiceSelect">
+                        <option value="default">Default Voice</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="speechRate">Speech Rate:</label>
+                    <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1">
+                    <span id="rateValue">1.0</span>
+                </div>
+                <div class="setting-group">
+                    <label for="speechPitch">Speech Pitch:</label>
+                    <input type="range" id="speechPitch" min="0" max="2" step="0.1" value="1">
+                    <span id="pitchValue">1.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

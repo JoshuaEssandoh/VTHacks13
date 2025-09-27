@@ -1,0 +1,37 @@
+{
+  "name": "ai-voice-conversation-livekit",
+  "version": "1.0.0",
+  "description": "AI Voice Conversation System with LiveKit and Gemini Integration",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx livekit-server --dev",
+    "dev": "npx livekit-server --dev --config livekit.yaml",
+    "server": "node server.js",
+    "build": "echo 'No build process needed for static files'",
+    "serve": "npx http-server . -p 8080 -c-1",
+    "dev:full": "concurrently \"npm run dev\" \"npm run server\""
+  },
+  "dependencies": {
+    "livekit-client": "^2.0.0",
+    "livekit-server-sdk": "^2.0.0",
+    "@google/generative-ai": "^0.2.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "concurrently": "^8.2.0"
+  },
+  "keywords": [
+    "livekit",
+    "voice",
+    "ai",
+    "speech",
+    "real-time",
+    "webrtc",
+    "gemini",
+    "google-ai"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
