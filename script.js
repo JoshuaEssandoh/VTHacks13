@@ -46,7 +46,7 @@ class VoiceConversation {
         this.speechPitch = document.getElementById('speechPitch');
         this.rateValue = document.getElementById('rateValue');
         this.pitchValue = document.getElementById('pitchValue');
-        this.webcam = document.getElementById('videoElement');
+        this.webcam = document.getElementById('webcam');
         this.canvas = document.getElementById('canvas');
         this.captureButton = document.getElementById('captureButton');
         this.ocrStatus = document.getElementById('ocrStatus');

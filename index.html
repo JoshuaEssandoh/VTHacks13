@@ -113,7 +113,8 @@
                     
                     <div class="camera-section">
                         <div class="camera-display" id="cameraDisplay">
-                            <video id="videoElement" autoplay muted></video>
+                            <video id="webcam" autoplay muted></video>
+                            <video id="webcam" width="640" height="480" autoplay muted></video>
                         </div>
                         <div class="camera-controls">
                             <button class="camera-btn" id="startCameraBtn">Start Camera</button>
@@ -238,7 +239,7 @@
                 speechPitch: document.getElementById('speechPitch'),
                 rateValue: document.getElementById('rateValue'),
                 pitchValue: document.getElementById('pitchValue'),
-                webcam: document.getElementById('videoElement'),
+                webcam: document.getElementById('webcam'),
                 canvas: document.getElementById('canvas'),
                 captureButton: document.getElementById('captureButton'),
                 ocrStatus: document.getElementById('ocrStatus'),
@@ -288,6 +289,8 @@
             if (!document.getElementById('canvas')) {
                 const canvas = document.createElement('canvas');
                 canvas.id = 'canvas';
+                canvas.width = 640;
+                canvas.height = 480;
                 canvas.style.display = 'none';
                 document.body.appendChild(canvas);
             }
