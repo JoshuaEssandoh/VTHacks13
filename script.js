@@ -318,26 +318,23 @@ class VoiceConversation {
     }
 
     updateConfidenceIndicator(confidence, className = '') {
-        const percentage = Math.round(confidence * 100);
-        this.confidenceFill.style.width = `${percentage}%`;
+        let bookConfidence = 0;
         
-        // Show both book and no_book confidence if we have the data
+        // Get book confidence from Teachable Machine predictions
         if (this.teachableModel && this.lastPredictions) {
-            const bookConf = Math.round(this.lastPredictions.book * 100);
-            const noBookConf = Math.round(this.lastPredictions.no_book * 100);
-            this.confidenceText.textContent = `Book: ${bookConf}% | No Book: ${noBookConf}%`;
+            bookConfidence = this.lastPredictions.book;
         } else {
-            this.confidenceText.textContent = `${className} detected! (${percentage}% confidence)`;
+            bookConfidence = confidence;
         }
         
-        if (confidence >= 0.7) {
-            this.confidenceText.className = 'confidence-text high';
-            this.captureButton.disabled = false;
-        } else if (confidence >= 0.4) {
-            this.confidenceText.className = 'confidence-text medium';
+        const percentage = Math.round(bookConfidence * 100);
+        this.confidenceFill.style.width = `${percentage}%`;
+        this.confidenceText.textContent = `Book Detection: ${percentage}%`;
+        
+        // Set button state based on book confidence
+        if (bookConfidence >= 0.7) {
             this.captureButton.disabled = false;
         } else {
-            this.confidenceText.className = 'confidence-text low';
             this.captureButton.disabled = true;
         }
     }
