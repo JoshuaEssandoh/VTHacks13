@@ -2,7 +2,7 @@
 
 An AI-powered reading assistant for visually impaired children with voice conversations, OCR-based book reading, and educational Q&A.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### **3-Step Setup**
 ```bash
@@ -19,7 +19,7 @@ npm run setup
 npm run server
 ```
 
-## ✨ Features
+## Features
 
 - **Speech-to-Text**: Click the microphone button to speak naturally
 - **Text-to-Speech**: AI responses are automatically spoken aloud
@@ -31,7 +31,7 @@ npm run server
 - **Real-time Audio Processing**: Advanced audio analysis and streaming
 - **Conversation Memory**: Maintains context across messages
 
-## 🛠️ Installation
+## Installation
 
 ### **Option 1: Automated Setup (Recommended)**
 ```bash
@@ -64,7 +64,7 @@ cp env.example .env
 npm run server
 ```
 
-## 🔑 API Key Setup
+## API Key Setup
 
 ### **Get OpenAI API Key**
 1. Visit: https://platform.openai.com/api-keys
@@ -82,7 +82,7 @@ LIVEKIT_API_SECRET=secret
 PORT=3000
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 ### **Frontend:**
 - HTML5, CSS3, JavaScript (ES6+)
@@ -103,7 +103,7 @@ User Speech → Web Speech API → OpenAI GPT → Text-to-Speech → Audio Outpu
      └─────────── Conversation Loop ──────┘
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### **Development**
 ```bash
@@ -116,7 +116,7 @@ npm run dev:full  # Start both servers
 3. Deploy to your preferred hosting platform
 4. Set up SSL/HTTPS for secure connections
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### **Common Issues**
 
@@ -140,15 +140,15 @@ npm run dev:full  # Start both servers
 - Check LiveKit server is running
 - Verify network connectivity
 
-## 📄 License
+## License
 
 This project is open source and available under the MIT License.
 
-## 🤝 Contributing
+## Contributing
 
 Feel free to submit issues, feature requests, or pull requests to improve this application.
 
-## 🎉 Acknowledgments
+## Acknowledgments
 
 - **OpenAI** for GPT-3.5-turbo API
 - **LiveKit** for real-time audio streaming
