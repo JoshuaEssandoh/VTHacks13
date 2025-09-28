@@ -27,7 +27,216 @@ class VoiceConversation {
         console.log('Speech rate element:', this.speechRate);
         console.log('Speech pitch element:', this.speechPitch);
         
-        // Speech synthesis testing removed - no automatic testing on user interaction
+        // Initialize and speak the welcome message automatically
+        this.initializeWelcomeMessage();
+    }
+
+    initializeWelcomeMessage() {
+        console.log('Initializing welcome message...');
+        
+        // Get the welcome message text
+        const welcomeText = "Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say read this page or what do you see and I'll tell you all about it! Let's go on a reading adventure together!";
+        
+        // Set up the conversation area with just the welcome message
+        if (this.conversationArea) {
+            this.conversationArea.innerHTML = `
+                <div class="message ai-message">
+                    <div class="message-content">
+                        <div class="bookworm-avatar">🐛</div>
+                        <p>${welcomeText}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Aggressive automatic speech attempts
+        this.attemptAutomaticWelcomeSpeech(welcomeText);
+        
+        // Initialize conversation state
+        this.conversationHistory = [];
+        this.currentPageText = '';
+        this.updateStatus('Microphone is active - start speaking!', 'listening');
+        this.updateOcrStatus('Ready to read and analyze books! Position a page in the camera and say "read this page".', 'ready');
+    }
+    
+    attemptAutomaticWelcomeSpeech(text) {
+        console.log('=== ATTEMPTING AUTOMATIC WELCOME SPEECH ===');
+        
+        let attempts = 0;
+        const maxAttempts = 20;
+        let success = false;
+        
+        const trySpeech = () => {
+            attempts++;
+            console.log(`Speech attempt ${attempts}/${maxAttempts}`);
+            
+            if (success || attempts > maxAttempts) {
+                return;
+            }
+            
+            try {
+                // Cancel any existing speech
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                }
+                
+                // Wait a moment for cancel to complete
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 1.0;
+                    utterance.pitch = 1.1; // Slightly higher pitch for girl voice
+                    utterance.volume = 1.0;
+                    
+                    // Try to find a UK girl voice
+                    const voices = speechSynthesis.getVoices();
+                    console.log('Available voices:', voices.length);
+                    
+                    // Look for UK English female voices
+                    const ukGirlVoice = voices.find(voice => 
+                        voice.lang.includes('en-GB') && 
+                        (voice.name.toLowerCase().includes('female') || 
+                         voice.name.toLowerCase().includes('woman') ||
+                         voice.name.toLowerCase().includes('girl') ||
+                         voice.name.toLowerCase().includes('zira') ||
+                         voice.name.toLowerCase().includes('susan') ||
+                         voice.name.toLowerCase().includes('karen') ||
+                         voice.name.toLowerCase().includes('hazel') ||
+                         voice.name.toLowerCase().includes('serena'))
+                    );
+                    
+                    if (ukGirlVoice) {
+                        utterance.voice = ukGirlVoice;
+                        console.log('Using UK girl voice:', ukGirlVoice.name, ukGirlVoice.lang);
+                    } else {
+                        // Fallback: look for any UK voice
+                        const ukVoice = voices.find(voice => voice.lang.includes('en-GB'));
+                        if (ukVoice) {
+                            utterance.voice = ukVoice;
+                            console.log('Using UK voice (fallback):', ukVoice.name, ukVoice.lang);
+                        } else {
+                            console.log('No UK voice found, using default');
+                        }
+                    }
+                    
+                    utterance.onstart = () => {
+                        console.log('✅ Welcome speech started successfully!');
+                        success = true;
+                        this.isSpeaking = true;
+                    };
+                    
+                    utterance.onend = () => {
+                        console.log('Welcome speech completed');
+                        this.isSpeaking = false;
+                        this.autoRestartListening();
+                    };
+                    
+                    utterance.onerror = (event) => {
+                        console.log(`❌ Speech attempt ${attempts} failed:`, event.error);
+                        this.isSpeaking = false;
+                        
+                        // Try again after a short delay
+                        if (attempts < maxAttempts) {
+                            setTimeout(trySpeech, 200);
+                        }
+                    };
+                    
+                    console.log(`Speaking attempt ${attempts}...`);
+                    speechSynthesis.speak(utterance);
+                }, 50);
+                
+            } catch (error) {
+                console.log(`❌ Speech attempt ${attempts} threw error:`, error);
+                if (attempts < maxAttempts) {
+                    setTimeout(trySpeech, 200);
+                }
+            }
+        };
+        
+        // Try immediately
+        trySpeech();
+        
+        // Try at various intervals
+        setTimeout(trySpeech, 100);
+        setTimeout(trySpeech, 300);
+        setTimeout(trySpeech, 600);
+        setTimeout(trySpeech, 1000);
+        setTimeout(trySpeech, 1500);
+        setTimeout(trySpeech, 2000);
+        setTimeout(trySpeech, 3000);
+        setTimeout(trySpeech, 4000);
+        setTimeout(trySpeech, 5000);
+        setTimeout(trySpeech, 7000);
+        setTimeout(trySpeech, 10000);
+        
+        // Also try when the page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && !success) {
+                console.log('Page became visible, trying speech again...');
+                setTimeout(trySpeech, 500);
+            }
+        });
+        
+        // Try when window gains focus
+        window.addEventListener('focus', () => {
+            if (!success) {
+                console.log('Window gained focus, trying speech again...');
+                setTimeout(trySpeech, 500);
+            }
+        });
+        
+        // Try when any user interaction happens
+        const interactionEvents = ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'];
+        const handleInteraction = () => {
+            if (!success) {
+                console.log('User interaction detected, trying speech...');
+                trySpeech();
+                // Remove listeners after first successful interaction
+                interactionEvents.forEach(event => {
+                    document.removeEventListener(event, handleInteraction);
+                });
+            }
+        };
+        
+        interactionEvents.forEach(event => {
+            document.addEventListener(event, handleInteraction, { once: false });
+        });
+    }
+    
+    speakWelcomeMessage(text) {
+        console.log('=== SPEAKING WELCOME MESSAGE ===');
+        console.log('Text:', text);
+        
+        // Stop any current speech
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+        }
+        
+        // Create a simple utterance
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        utterance.onstart = () => {
+            console.log('Welcome message speech started');
+            this.isSpeaking = true;
+        };
+        
+        utterance.onend = () => {
+            console.log('Welcome message speech ended');
+            this.isSpeaking = false;
+            this.autoRestartListening();
+        };
+        
+        utterance.onerror = (event) => {
+            console.error('Welcome message speech error:', event.error);
+            this.isSpeaking = false;
+            alert('Speech synthesis failed: ' + event.error);
+        };
+        
+        // Speak it
+        speechSynthesis.speak(utterance);
+        console.log('Welcome message speech synthesis started');
     }
 
     initializeElements() {
@@ -977,19 +1186,46 @@ class VoiceConversation {
         const voices = this.synthesis.getVoices();
         console.log('Available voices:', voices.length);
         
-        // Check if voice select element exists and has a value
-        if (this.voiceSelect && this.voiceSelect.value) {
-            const selectedVoiceIndex = this.voiceSelect.value;
-            console.log('Selected voice index:', selectedVoiceIndex);
-            
-            if (selectedVoiceIndex !== 'default' && voices[selectedVoiceIndex]) {
-                utterance.voice = voices[selectedVoiceIndex];
-                console.log('Using voice:', voices[selectedVoiceIndex].name);
-            } else {
-                console.log('Using default voice');
-            }
+        // Try to find a UK girl voice first
+        const ukGirlVoice = voices.find(voice => 
+            voice.lang.includes('en-GB') && 
+            (voice.name.toLowerCase().includes('female') || 
+             voice.name.toLowerCase().includes('woman') ||
+             voice.name.toLowerCase().includes('girl') ||
+             voice.name.toLowerCase().includes('zira') ||
+             voice.name.toLowerCase().includes('susan') ||
+             voice.name.toLowerCase().includes('karen') ||
+             voice.name.toLowerCase().includes('hazel') ||
+             voice.name.toLowerCase().includes('serena'))
+        );
+        
+        if (ukGirlVoice) {
+            utterance.voice = ukGirlVoice;
+            utterance.pitch = 1.1; // Slightly higher pitch for girl voice
+            console.log('Using UK girl voice:', ukGirlVoice.name, ukGirlVoice.lang);
         } else {
-            console.log('Voice select not available, using default voice');
+            // Fallback: look for any UK voice
+            const ukVoice = voices.find(voice => voice.lang.includes('en-GB'));
+            if (ukVoice) {
+                utterance.voice = ukVoice;
+                utterance.pitch = 1.1;
+                console.log('Using UK voice (fallback):', ukVoice.name, ukVoice.lang);
+            } else {
+                // Final fallback: check if voice select element exists and has a value
+                if (this.voiceSelect && this.voiceSelect.value) {
+                    const selectedVoiceIndex = this.voiceSelect.value;
+                    console.log('Selected voice index:', selectedVoiceIndex);
+                    
+                    if (selectedVoiceIndex !== 'default' && voices[selectedVoiceIndex]) {
+                        utterance.voice = voices[selectedVoiceIndex];
+                        console.log('Using selected voice:', voices[selectedVoiceIndex].name);
+                    } else {
+                        console.log('Using default voice');
+                    }
+                } else {
+                    console.log('No UK voice found, using default voice');
+                }
+            }
         }
         
         // Check if speech rate and pitch elements exist
@@ -1078,6 +1314,47 @@ class VoiceConversation {
         } catch (error) {
             console.error('Error calling speech synthesis:', error);
             this.updateStatus('Speech synthesis failed', 'error');
+            
+            // Retry once with a simpler utterance
+            console.log('Retrying with simplified utterance...');
+            try {
+                const simpleUtterance = new SpeechSynthesisUtterance(text);
+                simpleUtterance.rate = 1.0;
+                simpleUtterance.pitch = 1.0;
+                simpleUtterance.volume = 0.9;
+                
+                simpleUtterance.onstart = () => {
+                    console.log('Retry speech started');
+                    this.isSpeaking = true;
+                    this.updateStatus('Speaking...', 'speaking');
+                };
+                
+                simpleUtterance.onend = () => {
+                    console.log('Retry speech ended');
+                    this.isSpeaking = false;
+                    this.updateStatus('Ready to listen', 'ready');
+                    this.updateUI();
+                    this.autoRestartListening();
+                };
+                
+                simpleUtterance.onerror = (event) => {
+                    console.error('Retry speech error:', event.error);
+                    this.isSpeaking = false;
+                    this.updateStatus('Speech failed after retry', 'error');
+                    this.updateUI();
+                    this.autoRestartListening();
+                };
+                
+                const synthesis = this.synthesis || window.speechSynthesis;
+                synthesis.speak(simpleUtterance);
+                console.log('Retry speech synthesis called');
+            } catch (retryError) {
+                console.error('Retry also failed:', retryError);
+                this.isSpeaking = false;
+                this.updateStatus('Speech synthesis completely failed', 'error');
+                this.updateUI();
+                this.autoRestartListening();
+            }
         }
     }
 
@@ -1177,16 +1454,22 @@ class VoiceConversation {
     }
 
     clearConversation() {
+        const welcomeText = "Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say read this page or what do you see and I'll tell you all about it! Let's go on a reading adventure together!";
+        
         if (this.conversationArea) {
             this.conversationArea.innerHTML = `
                 <div class="message ai-message">
                     <div class="message-content">
                         <div class="bookworm-avatar">🐛</div>
-                        <p>Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together!</p>
+                        <p>${welcomeText}</p>
                     </div>
                 </div>
             `;
         }
+        
+        // Try to speak automatically when conversation is cleared
+        this.attemptAutomaticWelcomeSpeech(welcomeText);
+        
         this.conversationHistory = [];
         this.currentPageText = '';
         this.updateStatus('Microphone is active - start speaking!', 'listening');
@@ -1511,6 +1794,45 @@ window.testFullAI = async () => {
     } else {
         console.error('VoiceConversation not initialized');
     }
+};
+
+window.testWelcomeMessage = () => {
+    if (window.voiceConversation) {
+        console.log('Testing welcome message...');
+        const welcomeText = "Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say read this page or what do you see and I'll tell you all about it! Let's go on a reading adventure together!";
+        window.voiceConversation.speakText(welcomeText);
+    } else {
+        console.error('VoiceConversation not initialized');
+    }
+};
+
+window.listVoices = () => {
+    console.log('=== AVAILABLE VOICES ===');
+    const voices = speechSynthesis.getVoices();
+    console.log(`Total voices: ${voices.length}`);
+    
+    voices.forEach((voice, index) => {
+        const isUK = voice.lang.includes('en-GB');
+        const isFemale = voice.name.toLowerCase().includes('female') || 
+                        voice.name.toLowerCase().includes('woman') ||
+                        voice.name.toLowerCase().includes('girl') ||
+                        voice.name.toLowerCase().includes('zira') ||
+                        voice.name.toLowerCase().includes('susan') ||
+                        voice.name.toLowerCase().includes('karen') ||
+                        voice.name.toLowerCase().includes('hazel') ||
+                        voice.name.toLowerCase().includes('serena');
+        
+        console.log(`${index}: ${voice.name} (${voice.lang}) ${isUK ? '🇬🇧' : ''} ${isFemale ? '👩' : ''}`);
+    });
+    
+    // Show UK voices specifically
+    const ukVoices = voices.filter(voice => voice.lang.includes('en-GB'));
+    console.log('\n=== UK VOICES ===');
+    ukVoices.forEach((voice, index) => {
+        console.log(`${voice.name} (${voice.lang})`);
+    });
+    
+    return voices;
 };
 
 window.testSpeechSynthesis = () => {

@@ -359,7 +359,8 @@
                                 <button id="testAIBtn" style="padding: 8px 16px; margin-right: 10px;">Test AI Response</button>
                                 <button id="testDirectBtn" style="padding: 8px 16px; margin-right: 10px;">Test Direct Speech</button>
                                 <button id="testFullAIBtn" style="padding: 8px 16px; margin-right: 10px;">Test Full AI Flow</button>
-                                <button id="testQuickBtn" style="padding: 8px 16px;">Quick Test</button>
+                                <button id="testQuickBtn" style="padding: 8px 16px; margin-right: 10px;">Quick Test</button>
+                                <button id="testWelcomeBtn" style="padding: 8px 16px;">Test Welcome</button>
                                 <small style="display: block; margin-top: 5px; color: #666;">
                                     Test speech synthesis and AI responses
                                 </small>
@@ -415,6 +416,7 @@
                 const testDirectBtn = document.getElementById('testDirectBtn');
                 const testFullAIBtn = document.getElementById('testFullAIBtn');
                 const testQuickBtn = document.getElementById('testQuickBtn');
+                const testWelcomeBtn = document.getElementById('testWelcomeBtn');
                 
                 testSpeechBtn.addEventListener('click', () => {
                     if (window.voiceConversation) {
@@ -452,6 +454,16 @@
                     if (window.voiceConversation) {
                         console.log('Testing quick speech from settings...');
                         window.voiceConversation.testQuickSpeech();
+                    } else {
+                        alert('VoiceConversation not initialized');
+                    }
+                });
+                
+                testWelcomeBtn.addEventListener('click', () => {
+                    if (window.voiceConversation) {
+                        console.log('Testing welcome message from settings...');
+                        const welcomeText = "Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say read this page or what do you see and I'll tell you all about it! Let's go on a reading adventure together!";
+                        window.voiceConversation.speakText(welcomeText);
                     } else {
                         alert('VoiceConversation not initialized');
                     }
