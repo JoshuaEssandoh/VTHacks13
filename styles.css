@@ -198,7 +198,7 @@ body::before {
 .tagline {
     font-size: 1.1rem;
     color: #ff6b6b;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
     font-weight: 600;
     font-style: italic;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
@@ -991,8 +991,12 @@ body::before {
 
 /* Form Elements */
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 15px;
     text-align: left;
+}
+
+.form-group:first-child {
+    margin-top: 0;
 }
 
 .form-group label {
