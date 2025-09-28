@@ -1,6 +1,6 @@
-# AI Voice Conversation System with LiveKit
+# StoryVue – AI Reading Assistant
 
-A modern web-based speech-to-text and text-to-speech AI conversation application built with vanilla JavaScript, Web Speech API, LiveKit for real-time audio streaming, and OpenAI GPT for intelligent responses.
+An AI-powered reading assistant for visually impaired children with voice conversations, OCR-based book reading, and educational Q&A.
 
 ## 🚀 Quick Start
 
@@ -21,18 +21,15 @@ npm run server
 
 ## ✨ Features
 
-- 🎤 **Speech-to-Text**: Click the microphone button to speak naturally
-- 🔊 **Text-to-Speech**: AI responses are automatically spoken aloud
-- 💬 **Real-time Conversation**: Interactive chat interface with AI
-- 🌐 **LiveKit Integration**: Real-time audio streaming and processing
-- 🧠 **OpenAI GPT-3.5-turbo**: Intelligent AI responses
-- ⚙️ **Customizable Settings**: Adjust voice, speech rate, and pitch
-- 📱 **Responsive Design**: Works on desktop and mobile devices
-- 🎨 **Modern UI**: Beautiful gradient design with smooth animations
-- 🔄 **Real-time Audio Processing**: Advanced audio analysis and streaming
-- 💭 **Conversation Memory**: Maintains context across messages
-- 🔐 **Flexible Authentication**: Google OAuth or instant bypass for testing
-- 🚀 **One-Click Access**: Bypass authentication for immediate testing
+- **Speech-to-Text**: Click the microphone button to speak naturally
+- **Text-to-Speech**: AI responses are automatically spoken aloud
+- **Real-time Conversation**: Interactive chat interface with AI
+- **LiveKit Integration**: Real-time audio streaming and processing
+- **OpenAI GPT-3.5-turbo**: Intelligent AI responses
+- **Customizable Settings**: Adjust voice, speech rate, and pitch
+- **Responsive Design**: Works on desktop and mobile devices
+- **Real-time Audio Processing**: Advanced audio analysis and streaming
+- **Conversation Memory**: Maintains context across messages
 
 ## 🛠️ Installation
 
@@ -85,61 +82,19 @@ LIVEKIT_API_SECRET=secret
 PORT=3000
 ```
 
-## 🔐 Authentication Options
-
-### **Option 1: Bypass Authentication (Recommended for Testing)**
-1. Visit `http://localhost:3001`
-2. Click **"Continue without Google"** in the login overlay
-3. Instantly access all voice chat features
-
-### **Option 2: Google OAuth (Production)**
-1. Visit `http://localhost:3001`
-2. Click **"Continue with Google"**
-3. Complete Google authentication
-4. Access voice chat with your Google account
-
-## 🧪 Testing
-
-### **Test API Integration**
-```bash
-# Test OpenAI API key
-npm run test-api
-
-# Test server health
-npm run test-health
-
-# Test voice conversation
-# Open http://localhost:3001 and try speaking/typing
-```
-
-### **Expected Results**
-- **API Test**: `{"status":"success","api_key_valid":true}`
-- **Health Test**: `{"status":"ok","openai_configured":true}`
-- **Voice Test**: AI responds to speech and text input
-
-## 📦 Available Commands
-
-```bash
-npm run setup      # Automated setup and configuration
-npm run server     # Start web server only
-npm run dev        # Start LiveKit server only
-npm run dev:full   # Start both LiveKit and web servers
-npm run test-api   # Test OpenAI API connection
-npm run test-health # Test server health status
-npm run serve      # Start static file server
-```
-
 ## 🏗️ Architecture
 
-### **Frontend Components**
-- **HTML/CSS/JavaScript**: Modern web interface
-- **Web Speech API**: Speech-to-text and text-to-speech
-- **LiveKit Client**: Real-time audio streaming
+### **Frontend:**
+- HTML5, CSS3, JavaScript (ES6+)
+- Web Speech API (voice recognition + synthesis)
+- Tesseract.js (OCR)
+- TensorFlow.js (ML models)
 
-### **Backend Services**
-- **Express Server**: API endpoints and static file serving
-- **OpenAI Integration**: GPT-3.5-turbo for AI responses
-- **LiveKit Server**: Real-time audio processing
+### **Backend:**
+- Node.js + Express.js
+- OpenAI API (conversational AI)
+- Google OAuth 2.0
+- LiveKit (real-time audio processing)
 
 ### **AI Processing Pipeline**
 ```
@@ -147,61 +102,6 @@ User Speech → Web Speech API → OpenAI GPT → Text-to-Speech → Audio Outpu
      ↑                                    ↓
      └─────────── Conversation Loop ──────┘
 ```
-
-## 🔧 Customization
-
-### **AI Personality**
-Edit the system prompt in `server.js`:
-```javascript
-{
-    role: 'system',
-    content: 'You are a helpful AI assistant in a voice conversation app...'
-}
-```
-
-### **Voice Settings**
-Modify voice parameters in the UI settings or `script.js`:
-```javascript
-utterance.rate = 1.0;    // Speech speed
-utterance.pitch = 1.0;   // Voice pitch
-utterance.voice = voice; // Voice selection
-```
-
-### **UI Styling**
-Customize colors, fonts, and layout in `styles.css`:
-```css
-:root {
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
-    --accent-color: #28a745;
-}
-```
-
-## 📁 Project Structure
-
-```
-├── index.html              # Main HTML structure with integrated login
-├── styles.css              # CSS styling and animations
-├── script.js               # Frontend JavaScript functionality
-├── livekit-integration.js  # LiveKit integration module
-├── server.js               # Express server with OpenAI integration
-├── login.html              # Google OAuth login page
-├── setup.js                # Automated setup script
-├── livekit.yaml           # LiveKit server configuration
-├── package.json           # Dependencies and scripts
-├── .env                   # Environment variables (create this)
-├── env.example            # Environment template
-├── .gitignore             # Git ignore rules
-├── QUICK_START.md         # Quick start guide
-├── INSTALLATION.md        # Detailed installation guide
-└── README.md              # This documentation
-```
-
-## 🔒 Security
-
-- **API Key Protection**: Stored in `.env` file (gitignored)
-- **Environment Variables**: Sensitive data not committed to version control
-- **HTTPS Ready**: Configure SSL for production deployment
 
 ## 🚀 Deployment
 
