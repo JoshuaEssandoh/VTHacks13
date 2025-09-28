@@ -28,7 +28,6 @@ class VoiceConversation {
         console.log('Speech pitch element:', this.speechPitch);
         
         // Speech synthesis testing removed - no automatic testing on user interaction
-
     }
 
     initializeElements() {
@@ -315,191 +314,6 @@ class VoiceConversation {
             
         } catch (error) {
             console.error('Error in Teachable Machine detection:', error);
-        }
-    }
-
-    async detectBookWithComputerVision() {
-        if (!this.webcam.videoWidth) {
-            console.log('Webcam not ready yet');
-            return;
-        }
-        
-        try {
-            // Use computer vision heuristics for book detection
-            const bookConfidence = this.calculateBookConfidence();
-            
-            console.log('Computer vision confidence:', bookConfidence);
-            
-            // Update UI
-            this.updateConfidenceIndicator(bookConfidence, 'Book');
-            
-        } catch (error) {
-            console.error('Error in computer vision detection:', error);
-            // Fallback to a basic test confidence
-            this.updateConfidenceIndicator(0.3, 'Book (Test Mode)');
-        }
-    }
-
-    calculateBookConfidence() {
-        // Use computer vision techniques for book detection
-        const textPatternConfidence = this.detectTextPatterns();
-        const edgeConfidence = this.detectRectangularEdges();
-        const contrastConfidence = this.detectTextContrast();
-        
-        console.log('Detection components:', {
-            text: textPatternConfidence,
-            edge: edgeConfidence,
-            contrast: contrastConfidence
-        });
-        
-        // Combine multiple detection methods for better accuracy
-        const combinedConfidence = (
-            textPatternConfidence * 0.4 +
-            edgeConfidence * 0.3 +
-            contrastConfidence * 0.3
-        );
-        
-        console.log('Combined confidence:', combinedConfidence);
-        return Math.min(1, combinedConfidence);
-    }
-
-    detectTextPatterns() {
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 200;
-            canvas.height = 200;
-            
-            ctx.drawImage(this.webcam, 0, 0, 200, 200);
-            const imageData = ctx.getImageData(0, 0, 200, 200);
-            const data = imageData.data;
-            
-            // Convert to grayscale and detect text-like patterns
-            let textLikePixels = 0;
-            let totalPixels = 0;
-            
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                const brightness = (r + g + b) / 3;
-                
-                // Look for high contrast areas (potential text)
-                if (brightness > 30 && brightness < 220) {
-                    textLikePixels++;
-                }
-                totalPixels++;
-            }
-            
-            const textRatio = textLikePixels / totalPixels;
-            
-            // Return confidence based on text-like pixel ratio
-            if (textRatio > 0.3) return 0.8; // High confidence
-            if (textRatio > 0.2) return 0.6; // Medium confidence
-            if (textRatio > 0.1) return 0.3; // Low confidence
-            return 0;
-            
-        } catch (error) {
-            return 0;
-        }
-    }
-
-    detectRectangularEdges() {
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 150;
-            canvas.height = 150;
-            
-            ctx.drawImage(this.webcam, 0, 0, 150, 150);
-            const imageData = ctx.getImageData(0, 0, 150, 150);
-            const data = imageData.data;
-            
-            // Simple edge detection using Sobel operator
-            let edgeStrength = 0;
-            const width = 150;
-            const height = 150;
-            
-            for (let y = 1; y < height - 1; y++) {
-                for (let x = 1; x < width - 1; x++) {
-                    const idx = (y * width + x) * 4;
-                    const r = data[idx];
-                    const g = data[idx + 1];
-                    const b = data[idx + 2];
-                    const brightness = (r + g + b) / 3;
-                    
-                    // Simple edge detection
-                    const rightIdx = (y * width + (x + 1)) * 4;
-                    const rightBrightness = (data[rightIdx] + data[rightIdx + 1] + data[rightIdx + 2]) / 3;
-                    
-                    const downIdx = ((y + 1) * width + x) * 4;
-                    const downBrightness = (data[downIdx] + data[downIdx + 1] + data[downIdx + 2]) / 3;
-                    
-                    const edgeX = Math.abs(brightness - rightBrightness);
-                    const edgeY = Math.abs(brightness - downBrightness);
-                    const edgeMagnitude = Math.sqrt(edgeX * edgeX + edgeY * edgeY);
-                    
-                    if (edgeMagnitude > 30) {
-                        edgeStrength++;
-                    }
-                }
-            }
-            
-            const edgeRatio = edgeStrength / ((width - 2) * (height - 2));
-            
-            // Return confidence based on edge density (rectangular objects have many edges)
-            if (edgeRatio > 0.15) return 0.7; // High confidence
-            if (edgeRatio > 0.1) return 0.5;  // Medium confidence
-            if (edgeRatio > 0.05) return 0.3; // Low confidence
-            return 0;
-            
-        } catch (error) {
-            return 0;
-        }
-    }
-
-    detectTextContrast() {
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 100;
-            canvas.height = 100;
-            
-            ctx.drawImage(this.webcam, 0, 0, 100, 100);
-            const imageData = ctx.getImageData(0, 0, 100, 100);
-            const data = imageData.data;
-            
-            let minBrightness = 255;
-            let maxBrightness = 0;
-            let totalBrightness = 0;
-            let pixelCount = 0;
-            
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                const brightness = (r + g + b) / 3;
-                
-                minBrightness = Math.min(minBrightness, brightness);
-                maxBrightness = Math.max(maxBrightness, brightness);
-                totalBrightness += brightness;
-                pixelCount++;
-            }
-            
-            const avgBrightness = totalBrightness / pixelCount;
-            const contrast = maxBrightness - minBrightness;
-            
-            // Good text contrast: not too dark, not too bright, good contrast range
-            let confidence = 0;
-            
-            if (avgBrightness > 80 && avgBrightness < 180) confidence += 0.3;
-            if (contrast > 100) confidence += 0.4;
-            if (contrast > 150) confidence += 0.3;
-            
-            return Math.min(1, confidence);
-            
-        } catch (error) {
-            return 0;
         }
     }
 
@@ -1003,7 +817,7 @@ class VoiceConversation {
         const messages = [
             {
                 role: "system",
-                content: "You are a friendly, enthusiastic bookworm assistant for children. You help kids with reading, answer questions about books, and make learning fun. Always be encouraging and speak in a child-friendly way. Keep responses concise but engaging. Don't use emojis."
+                content: "You are a friendly, enthusiastic bookworm assistant for children. You help kids with reading, answer questions about books, and make learning fun, especially for those with learning disabilities and visual impairments. Always be encouraging and speak in a child-friendly way. Keep responses concise but engaging."
             },
             ...this.conversationHistory.slice(-10), // Last 10 messages for context
             {
@@ -1371,7 +1185,7 @@ class VoiceConversation {
                 <div class="message ai-message">
                     <div class="message-content">
                         <div class="bookworm-avatar">🐛</div>
-                        <p>Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together! </p>
+                        <p>Hi there, little reader! I'm your friendly bookworm friend! I love books so much that I eat them... just kidding! I read them to you instead! Just show me a book page and say "read this page" or "what do you see" and I'll tell you all about it! Let's go on a reading adventure together!</p>
                     </div>
                 </div>
             `;
@@ -1486,12 +1300,6 @@ class VoiceConversation {
                 console.log('Auto-restart skipped due to current state');
             }
         }, 500); // Short delay to ensure speech has fully ended
-    }
-
-    // Manual restart method for debugging
-    manualRestartMicrophone() {
-        console.log('Manual microphone restart requested');
-        this.autoRestartListening();
     }
 
     // Test speech synthesis manually
